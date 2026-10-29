@@ -137,6 +137,7 @@ app.post("/api/register", async (req, res) => {
 });
 
 // LOGIN
+
 app.post("/api/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -144,16 +145,18 @@ app.post("/api/login", async (req, res) => {
         if (
             typeof email !== "string" ||
             typeof password !== "string" ||
+            email.trim() === "" ||
             email.length > 255 ||
             Buffer.byteLength(password, "utf8") > 72
         ) {
             return res.status(400).json({
-                message: "Please enter valid login details."
+                message: "Please provide valid login details."
             });
         }
 
         const cleanEmail = email.trim().toLowerCase();
 
+        // 1. Check whether the user exists
         const [users] = await db.execute(
             `SELECT id, username, email, password_hash
              FROM users
@@ -161,21 +164,35 @@ app.post("/api/login", async (req, res) => {
             [cleanEmail]
         );
 
-        if (
-            users.length === 0 ||
-            !(await bcrypt.compare(password, users[0].password_hash))
-        ) {
-            return res.status(401).json({
-                message: "Invalid email or password."
+        // 2. Return 404 if the user does not exist
+        if (users.length === 0) {
+            return res.status(404).json({
+                message: "User not found."
             });
         }
 
+        // 3. Match the submitted password
+        const passwordMatches = await bcrypt.compare(
+            password,
+            users[0].password_hash
+        );
+
+        // 4. Return 401 if the password is incorrect
+        if (!passwordMatches) {
+            return res.status(401).json({
+                message: "User not authorized."
+            });
+        }
+
+        // 5. Create a session after successful authentication
         await createUserSession(req, users[0].id);
 
-        return res.json({
-            message: "Login successful!",
+        // 6. Send the success response
+        return res.status(200).json({
+            message: "User login successful.",
             redirect: "/home.html"
         });
+
     } catch (error) {
         console.error("Login error:", error.message);
 
@@ -184,6 +201,7 @@ app.post("/api/login", async (req, res) => {
         });
     }
 });
+
 
 // CURRENT USER
 app.get("/api/me", async (req, res) => {
