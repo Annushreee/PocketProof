@@ -4,91 +4,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PocketProof - Expense Tracker</title>
+    <title>PocketProof - Take Control of Your Money</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <header>
-        <h1>PocketProof</h1>
-        <p>Your money, your clarity.</p>
-    </header>
+    <div class="auth-layout">
 
-    <main>
-        <section id="register-section">
-            <h2>Sign Up</h2>
+        <!-- LEFT BRANDING PANEL -->
+        <aside class="brand-panel">
+            <div class="brand-content">
 
-            <form id="register-form">
-                
-           <label for="username">Username</label>
-<input type="text" id="username" name="username" required>
+                <div class="brand-logo">
+                    <div class="logo-icon">₹</div>
+                    <span>PocketProof</span>
+                </div>
+
+                <div class="brand-message">
+                    <span class="eyebrow">SMARTER MONEY HABITS</span>
+                    <h1>Make every<br>rupee <span>count.</span></h1>
+                    <p>
+                        Take control of your spending, understand
+                        your habits, and build a better financial future.
+                    </p>
+                </div>
+
+                <div class="brand-bottom">
+                    <div class="feature-item">
+                        <span>✓</span> Track your daily expenses
+                    </div>
+                    <div class="feature-item">
+                        <span>✓</span> Understand your spending
+                    </div>
+                    <div class="feature-item">
+                        <span>✓</span> Stay in control of your money
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="decor-circle circle-one"></div>
+            <div class="decor-circle circle-two"></div>
+        </aside>
 
 
-                <label for="register-email">Email</label>
-                <input type="email" id="register-email" name="email" required>
+        <!-- RIGHT AUTHENTICATION PANEL -->
+        <main class="auth-panel">
 
-                <label for="register-password">Password</label>
-                <input type="password" id="register-password"
-                       name="password" minlength="8" required>
+            <div class="auth-card">
 
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password"
-                       name="confirmPassword" minlength="8" required>
+                <div class="mobile-logo">
+                    <div class="logo-icon">₹</div>
+                    <span>PocketProof</span>
+                </div>
 
-                <button type="submit">Create Account</button>
-            </form>
+                <!-- SIGN UP -->
+                <section id="register-section">
 
-            <p>Already have an account?
-                <button type="button" id="show-login">Log In</button>
-            </p>
-        </section>
+                    <div class="form-heading">
+                        <span class="eyebrow">GET STARTED</span>
+                        <h2>Create your account</h2>
+                        <p>Start managing your money with confidence.</p>
+                    </div>
 
-        <section id="login-section" hidden>
-            <h2>Welcome Back</h2>
+                    <form id="register-form">
 
-            <form id="login-form">
-                <label for="login-email">Email</label>
-                <input type="email" id="login-email" name="email" required>
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                placeholder="Enter your username"
+                                required
+                            >
+                        </div>
 
-                <label for="login-password">Password</label>
-                <input type="password" id="login-password"
-                       name="password" required>
+                        <div class="form-group">
+                            <label for="register-email">Email address</label>
+                            <input
+                                type="email"
+                                id="register-email"
+                                name="email"
+                                placeholder="you@example.com"
+                                required
+                            >
+                        </div>
 
-                <button type="submit">Log In</button>
-            </form>
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input
+                                type="password"
+                                id="register-password"
+                                name="password"
+                                placeholder="At least 8 characters"
+                                minlength="8"
+                                required
+                            >
+                        </div>
 
-            <p>
-                <button type="button" id="forgot-password">
-                    Forgot Password?
-                </button>
-            </p>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm password</label>
+                            <input
+                                type="password"
+                                id="confirm-password"
+                                name="confirmPassword"
+                                placeholder="Re-enter your password"
+                                minlength="8"
+                                required
+                            >
+                        </div>
 
-            <p>Don't have an account?
-                <button type="button" id="show-register">
-                    Create Account
-                </button>
-            </p>
-        </section>
+                        <button type="submit" class="primary-button">
+                            Create Account <span>→</span>
+                        </button>
 
-        <section id="forgot-section" hidden>
-            <h2>Reset Password</h2>
+                    </form>
 
-            <form id="forgot-form">
-                <label for="forgot-email">Registered Email</label>
-                <input type="email" id="forgot-email" name="email" required>
+                    <p class="switch-text">
+                        Already have an account?
+                        <button type="button" id="show-login">Log in</button>
+                    </p>
 
-                <button type="submit">Send Reset Link</button>
-            </form>
+                </section>
 
-            <p>
-                <button type="button" id="back-to-login">
-                    Back to Login
-                </button>
-            </p>
-        </section>
 
-        <p id="message" role="status" hidden></p>
-    </main>
+                <!-- LOGIN -->
+                <section id="login-section" hidden>
+
+                    <div class="form-heading">
+                        <span class="eyebrow">WELCOME BACK</span>
+                        <h2>Good to see you again.</h2>
+                        <p>Log in to continue managing your finances.</p>
+                    </div>
+
+                    <form id="login-form">
+
+                        <div class="form-group">
+                            <label for="login-email">Email address</label>
+                            <input
+                                type="email"
+                                id="login-email"
+                                name="email"
+                                placeholder="you@example.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input
+                                type="password"
+                                id="login-password"
+                                name="password"
+                                placeholder="Enter your password"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit" class="primary-button">
+                            Log In <span>→</span>
+                        </button>
+
+                    </form>
+
+                    <p class="forgot-text">
+                        <button type="button" id="forgot-password">
+                            Forgot password?
+                        </button>
+                    </p>
+
+                    <p class="switch-text">
+                        Don't have an account?
+                        <button type="button" id="show-register">
+                            Create account
+                        </button>
+                    </p>
+
+                </section>
+
+
+                <!-- FORGOT PASSWORD -->
+                <section id="forgot-section" hidden>
+
+                    <div class="form-heading">
+                        <span class="eyebrow">ACCOUNT RECOVERY</span>
+                        <h2>Reset your password</h2>
+                        <p>Enter your registered email address.</p>
+                    </div>
+
+                    <form id="forgot-form">
+
+                        <div class="form-group">
+                            <label for="forgot-email">Email address</label>
+                            <input
+                                type="email"
+                                id="forgot-email"
+                                name="email"
+                                placeholder="you@example.com"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit" class="primary-button">
+                            Send Reset Link <span>→</span>
+                        </button>
+
+                    </form>
+
+                    <p class="switch-text">
+                        <button type="button" id="back-to-login">
+                            ← Back to login
+                        </button>
+                    </p>
+
+                </section>
+
+                <p id="message" role="status" hidden></p>
+
+                <p class="security-note">
+                    🔒 Your financial information stays private.
+                </p>
+
+            </div>
+
+        </main>
+
+    </div>
 
     <script src="js/auth.js"></script>
 </body>

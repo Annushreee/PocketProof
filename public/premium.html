@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Membership | PocketProof</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">PocketProof</div>
+
+        <nav>
+            <a href="home.html">Home</a>
+            <a href="expenses.html">Expenses</a>
+            <a href="premium.html" class="active">Premium Membership</a>
+        </nav>
+
+        <button id="logout-button">Logout</button>
+    </header>
+
+    <main class="premium-container">
+
+        <section class="premium-card">
+            <p class="premium-label">POCKETPROOF PREMIUM</p>
+
+            <h1>Take control of your finances.</h1>
+
+            <p class="premium-description">
+                Upgrade your PocketProof experience with Premium Membership.
+            </p>
+
+            <div class="premium-price">
+                <span>₹99</span>
+                <small>One-time payment</small>
+            </div>
+
+            <div class="premium-benefits">
+                <h3>Premium Membership Benefits</h3>
+                <ul>
+                    <li>Advanced expense insights</li>
+                    <li>Better financial tracking</li>
+                    <li>Detailed spending analysis</li>
+                    <li>Premium account access</li>
+                </ul>
+            </div>
+
+            <form id="premium-form">
+                <label for="customer-phone">Mobile Number</label>
+                <input
+                    type="tel"
+                    id="customer-phone"
+                    placeholder="Enter your 10-digit mobile number"
+                    pattern="[6-9][0-9]{9}"
+                    maxlength="10"
+                    required
+                >
+
+                <button type="submit" id="premium-button">
+                    Buy Premium Membership – ₹99
+                </button>
+
+                <p id="premium-message"></p>
+            </form>
+        </section>
+
+    </main>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <script src="js/premium.js"></script>
+</body>
+</html>

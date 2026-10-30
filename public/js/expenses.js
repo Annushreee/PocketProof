@@ -1,4 +1,3 @@
-
 const expenseForm = document.getElementById("expense-form");
 const amountInput = document.getElementById("expense-amount");
 const descriptionInput = document.getElementById("expense-description");
@@ -29,7 +28,9 @@ dateInput.value = new Date().toLocaleDateString("en-CA");
 // Display a message
 function showMessage(text, isError = false) {
     message.textContent = text;
-    message.style.color = isError ? "red" : "green";
+    message.hidden = !text;
+    message.classList.toggle("message-error", isError);
+    message.classList.toggle("message-success", !isError);
 }
 
 // Update subcategories when the category changes

@@ -5,7 +5,13 @@ const express = require("express");
 const path = require("path");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const db = require("./config/db");
+
+const {
+    createOrder,
+    fetchPayments
+} = require("./services/cashfreeServices");
 
 const app = express();
 
@@ -63,7 +69,12 @@ function createUserSession(req, userId) {
 
 app.post("/api/register", async (req, res) => {
     try {
-        const { username, email, password, confirmPassword } = req.body;
+        const {
+            username,
+            email,
+            password,
+            confirmPassword
+        } = req.body;
 
         if (
             typeof username !== "string" ||
@@ -172,7 +183,6 @@ app.post("/api/login", async (req, res) => {
 
         const cleanEmail = email.trim().toLowerCase();
 
-        // Check whether user exists
         const [users] = await db.execute(
             `SELECT id, username, email, password_hash
              FROM users
@@ -186,7 +196,6 @@ app.post("/api/login", async (req, res) => {
             });
         }
 
-        // Verify password
         const passwordMatches = await bcrypt.compare(
             password,
             users[0].password_hash
@@ -198,7 +207,6 @@ app.post("/api/login", async (req, res) => {
             });
         }
 
-        // Create session
         await createUserSession(req, users[0].id);
 
         return res.status(200).json({
@@ -228,7 +236,9 @@ app.get("/api/me", async (req, res) => {
 
     try {
         const [users] = await db.execute(
-            "SELECT id, username, email FROM users WHERE id = ?",
+            `SELECT id, username, email, is_premium
+             FROM users
+             WHERE id = ?`,
             [req.session.userId]
         );
 
@@ -441,6 +451,236 @@ app.delete("/api/expenses/:id", async (req, res) => {
 });
 
 // =========================
+// CASHFREE: CREATE PREMIUM ORDER
+// =========================
+
+app.post("/api/premium/create-order", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({
+            message: "Please log in first."
+        });
+    }
+
+    let orderId;
+
+    try {
+        const userId = req.session.userId;
+        const { customerPhone } = req.body;
+
+        if (
+            typeof customerPhone !== "string" ||
+            !/^[6-9]\d{9}$/.test(customerPhone)
+        ) {
+            return res.status(400).json({
+                message: "Please enter a valid 10-digit mobile number."
+            });
+        }
+
+        const [users] = await db.execute(
+            `SELECT id, username, email, is_premium
+             FROM users
+             WHERE id = ?`,
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                message: "User not found."
+            });
+        }
+
+        const user = users[0];
+
+        if (user.is_premium) {
+            return res.status(409).json({
+                message: "You already have Premium Membership."
+            });
+        }
+
+        // Fixed membership price
+        const amount = 99.00;
+
+        // Generate unique order ID
+        orderId = `PP_${userId}_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
+
+        // Save order as PENDING in MySQL
+        await db.execute(
+            `INSERT INTO orders (user_id, order_id, amount, status)
+             VALUES (?, ?, ?, 'PENDING')`,
+            [userId, orderId, amount]
+        );
+
+        try {
+            const paymentSessionId = await createOrder(
+                orderId,
+                amount,
+                userId,
+                customerPhone,
+                user.email
+            );
+
+            return res.status(201).json({
+                message: "Payment order created successfully.",
+                orderId,
+                paymentSessionId
+            });
+
+        } catch (cashfreeError) {
+            await db.execute(
+                `UPDATE orders
+                 SET status = 'FAILED'
+                 WHERE order_id = ? AND user_id = ?`,
+                [orderId, userId]
+            );
+
+            throw cashfreeError;
+        }
+
+    } catch (error) {
+        console.error("Premium order error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to create payment order."
+        });
+    }
+});
+
+// =========================
+// CASHFREE: VERIFY PAYMENT
+// =========================
+
+app.post("/api/premium/verify-payment", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({
+            message: "Please log in first."
+        });
+    }
+
+    const userId = req.session.userId;
+    const { orderId } = req.body;
+
+    if (
+        typeof orderId !== "string" ||
+        !orderId.trim()
+    ) {
+        return res.status(400).json({
+            message: "Order ID is required."
+        });
+    }
+
+    try {
+        // Check that the order belongs to this user
+        const [orders] = await db.execute(
+            `SELECT id, user_id, order_id, amount, status
+             FROM orders
+             WHERE order_id = ? AND user_id = ?`,
+            [orderId, userId]
+        );
+
+        if (orders.length === 0) {
+            return res.status(404).json({
+                message: "Order not found."
+            });
+        }
+
+        const order = orders[0];
+
+        if (order.status === "SUCCESSFUL") {
+            return res.json({
+                status: "SUCCESSFUL",
+                message: "Premium Membership is already active."
+            });
+        }
+
+        if (order.status === "FAILED") {
+            return res.json({
+                status: "FAILED",
+                message: "TRANSACTION FAILED"
+            });
+        }
+
+        // Fetch payment details directly from Cashfree
+        const payments = await fetchPayments(orderId);
+
+        if (!Array.isArray(payments) || payments.length === 0) {
+            return res.json({
+                status: "PENDING",
+                message: "Payment is still pending."
+            });
+        }
+
+        // Check whether Cashfree confirms a successful payment
+        const successfulPayment = payments.find(
+            payment => payment.payment_status === "SUCCESS"
+        );
+
+        if (successfulPayment) {
+            // Update order status
+            await db.execute(
+                `UPDATE orders
+                 SET status = 'SUCCESSFUL'
+                 WHERE order_id = ? AND user_id = ?
+                   AND status = 'PENDING'`,
+                [orderId, userId]
+            );
+
+            // Activate Premium Membership
+            await db.execute(
+                `UPDATE users
+                 SET is_premium = TRUE
+                 WHERE id = ?`,
+                [userId]
+            );
+
+            return res.json({
+                status: "SUCCESSFUL",
+                message: "Transaction successful! Premium Membership activated."
+            });
+        }
+
+        // Check whether any payment is still pending
+        const hasPendingPayment = payments.some(
+            payment => payment.payment_status === "PENDING"
+        );
+
+        // Check for failed or cancelled payments
+        const hasFailedPayment = payments.some(
+            payment =>
+                ["FAILED", "USER_DROPPED", "CANCELLED"].includes(
+                    payment.payment_status
+                )
+        );
+
+        if (!hasPendingPayment && hasFailedPayment) {
+            await db.execute(
+                `UPDATE orders
+                 SET status = 'FAILED'
+                 WHERE order_id = ? AND user_id = ?
+                   AND status = 'PENDING'`,
+                [orderId, userId]
+            );
+
+            return res.json({
+                status: "FAILED",
+                message: "TRANSACTION FAILED"
+            });
+        }
+
+        return res.json({
+            status: "PENDING",
+            message: "Payment is still pending."
+        });
+
+    } catch (error) {
+        console.error("Payment verification error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to verify payment right now."
+        });
+    }
+});
+
+// =========================
 // PROTECT HOME PAGE
 // =========================
 
@@ -465,6 +705,20 @@ app.get("/expenses.html", (req, res) => {
 
     return res.sendFile(
         path.join(__dirname, "public", "expenses.html")
+    );
+});
+
+// =========================
+// PROTECT PREMIUM PAGE
+// =========================
+
+app.get("/premium.html", (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect("/");
+    }
+
+    return res.sendFile(
+        path.join(__dirname, "public", "premium.html")
     );
 });
 
