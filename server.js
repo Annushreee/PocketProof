@@ -9,6 +9,10 @@ const db = require("./config/db");
 
 const app = express();
 
+// =========================
+// MIDDLEWARE
+// =========================
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -26,12 +30,18 @@ app.use(
     })
 );
 
-// ROOT: Open signup page
+// =========================
+// ROOT PAGE
+// =========================
+
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "signup.html"));
 });
 
-// Create a session after successful authentication
+// =========================
+// CREATE USER SESSION
+// =========================
+
 function createUserSession(req, userId) {
     return new Promise((resolve, reject) => {
         req.session.regenerate((error) => {
@@ -47,7 +57,10 @@ function createUserSession(req, userId) {
     });
 }
 
-// SIGNUP
+// =========================
+// SIGNUP API
+// =========================
+
 app.post("/api/register", async (req, res) => {
     try {
         const { username, email, password, confirmPassword } = req.body;
@@ -119,8 +132,9 @@ app.post("/api/register", async (req, res) => {
 
         return res.status(201).json({
             message: "Account created successfully!",
-            redirect: "/home.html"
+            redirect: "/expenses.html"
         });
+
     } catch (error) {
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(409).json({
@@ -136,7 +150,9 @@ app.post("/api/register", async (req, res) => {
     }
 });
 
-// LOGIN
+// =========================
+// LOGIN API
+// =========================
 
 app.post("/api/login", async (req, res) => {
     try {
@@ -156,7 +172,7 @@ app.post("/api/login", async (req, res) => {
 
         const cleanEmail = email.trim().toLowerCase();
 
-        // 1. Check whether the user exists
+        // Check whether user exists
         const [users] = await db.execute(
             `SELECT id, username, email, password_hash
              FROM users
@@ -164,33 +180,30 @@ app.post("/api/login", async (req, res) => {
             [cleanEmail]
         );
 
-        // 2. Return 404 if the user does not exist
         if (users.length === 0) {
             return res.status(404).json({
                 message: "User not found."
             });
         }
 
-        // 3. Match the submitted password
+        // Verify password
         const passwordMatches = await bcrypt.compare(
             password,
             users[0].password_hash
         );
 
-        // 4. Return 401 if the password is incorrect
         if (!passwordMatches) {
             return res.status(401).json({
                 message: "User not authorized."
             });
         }
 
-        // 5. Create a session after successful authentication
+        // Create session
         await createUserSession(req, users[0].id);
 
-        // 6. Send the success response
         return res.status(200).json({
             message: "User login successful.",
-            redirect: "/home.html"
+            redirect: "/expenses.html"
         });
 
     } catch (error) {
@@ -202,8 +215,10 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
+// =========================
+// CURRENT USER API
+// =========================
 
-// CURRENT USER
 app.get("/api/me", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({
@@ -224,6 +239,7 @@ app.get("/api/me", async (req, res) => {
         }
 
         return res.json({ user: users[0] });
+
     } catch (error) {
         console.error("User lookup error:", error.message);
 
@@ -233,7 +249,10 @@ app.get("/api/me", async (req, res) => {
     }
 });
 
-// LOGOUT
+// =========================
+// LOGOUT API
+// =========================
+
 app.post("/api/logout", (req, res) => {
     req.session.destroy((error) => {
         if (error) {
@@ -250,11 +269,10 @@ app.post("/api/logout", (req, res) => {
     });
 });
 
-/* =========================
-   EXPENSE API ROUTES
-========================= */
+// =========================
+// GET ALL USER EXPENSES
+// =========================
 
-// GET: Fetch expenses belonging to the logged-in user
 app.get("/api/expenses", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({
@@ -264,7 +282,8 @@ app.get("/api/expenses", async (req, res) => {
 
     try {
         const [expenses] = await db.execute(
-            `SELECT id, amount, description, category, subcategory, expense_date
+            `SELECT id, amount, description, category,
+                    subcategory, expense_date
              FROM expenses
              WHERE user_id = ?
              ORDER BY expense_date DESC, id DESC`,
@@ -272,6 +291,7 @@ app.get("/api/expenses", async (req, res) => {
         );
 
         return res.json({ expenses });
+
     } catch (error) {
         console.error("Fetch expenses error:", error.message);
 
@@ -281,7 +301,10 @@ app.get("/api/expenses", async (req, res) => {
     }
 });
 
-// POST: Add an expense
+// =========================
+// ADD EXPENSE API
+// =========================
+
 app.post("/api/expenses", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({
@@ -345,7 +368,8 @@ app.post("/api/expenses", async (req, res) => {
 
         const [result] = await db.execute(
             `INSERT INTO expenses
-             (user_id, amount, description, category, subcategory, expense_date)
+             (user_id, amount, description, category,
+              subcategory, expense_date)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [
                 req.session.userId,
@@ -361,6 +385,7 @@ app.post("/api/expenses", async (req, res) => {
             message: "Expense added successfully.",
             expenseId: result.insertId
         });
+
     } catch (error) {
         console.error("Add expense error:", error.message);
 
@@ -370,7 +395,10 @@ app.post("/api/expenses", async (req, res) => {
     }
 });
 
-// DELETE: Delete an expense belonging to the logged-in user
+// =========================
+// DELETE EXPENSE API
+// =========================
+
 app.delete("/api/expenses/:id", async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({
@@ -388,7 +416,8 @@ app.delete("/api/expenses/:id", async (req, res) => {
         }
 
         const [result] = await db.execute(
-            "DELETE FROM expenses WHERE id = ? AND user_id = ?",
+            `DELETE FROM expenses
+             WHERE id = ? AND user_id = ?`,
             [expenseId, req.session.userId]
         );
 
@@ -401,6 +430,7 @@ app.delete("/api/expenses/:id", async (req, res) => {
         return res.json({
             message: "Expense deleted successfully."
         });
+
     } catch (error) {
         console.error("Delete expense error:", error.message);
 
@@ -410,15 +440,23 @@ app.delete("/api/expenses/:id", async (req, res) => {
     }
 });
 
-
+// =========================
 // PROTECT HOME PAGE
+// =========================
+
 app.get("/home.html", (req, res) => {
     if (!req.session.userId) {
         return res.redirect("/");
     }
 
-    return res.sendFile(path.join(__dirname, "public", "home.html"));
+    return res.sendFile(
+        path.join(__dirname, "public", "home.html")
+    );
 });
+
+// =========================
+// PROTECT EXPENSE PAGE
+// =========================
 
 app.get("/expenses.html", (req, res) => {
     if (!req.session.userId) {
@@ -430,23 +468,34 @@ app.get("/expenses.html", (req, res) => {
     );
 });
 
+// =========================
+// STATIC FILES
+// =========================
 
-// Serve CSS, JavaScript and other public assets
 app.use(express.static(path.join(__dirname, "public")));
+
+// =========================
+// START SERVER
+// =========================
 
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
     try {
         if (!process.env.SESSION_SECRET) {
-            throw new Error("SESSION_SECRET is missing from your .env file.");
+            throw new Error(
+                "SESSION_SECRET is missing from your .env file."
+            );
         }
 
         await db.query("SELECT 1");
 
         app.listen(PORT, () => {
-            console.log(`PocketProof running at http://localhost:${PORT}`);
+            console.log(
+                `PocketProof running at http://localhost:${PORT}`
+            );
         });
+
     } catch (error) {
         console.error("Server startup failed:", error.message);
         process.exit(1);
