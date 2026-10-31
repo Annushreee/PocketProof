@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketProof | Add Income</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="dashboard-nav">
+        <a href="/home.html" class="dashboard-brand">
+            <span class="logo-icon">₹</span>
+            <span>PocketProof</span>
+        </a>
+
+        <div class="nav-right">
+            <a href="/home.html">Home</a>
+            <button type="button" id="logout-button" class="logout-button">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="income-container">
+
+        <header class="income-header">
+            <div class="income-icon">↗</div>
+            <h1>Add Your Income</h1>
+            <p>Record your earnings and keep track of your money.</p>
+        </header>
+
+        <section class="income-form-card">
+
+            <form id="income-form">
+
+                <label for="income-amount">Amount (₹)</label>
+                <input
+                    type="number"
+                    id="income-amount"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Enter amount"
+                    required
+                >
+
+                <label for="income-source">Income Source</label>
+                <select id="income-source" required>
+                    <option value="">Select income source</option>
+                    <option value="Monthly salary">Monthly Salary</option>
+                    <option value="Bonus">Bonus</option>
+                    <option value="Freelance income">Freelance Income</option>
+                    <option value="Other income">Other Income</option>
+                </select>
+
+                <label for="income-description">Description</label>
+                <input
+                    type="text"
+                    id="income-description"
+                    placeholder="Enter description"
+                    required
+                >
+
+                <label for="income-date">Date</label>
+                <input type="date" id="income-date" required>
+
+                <p id="income-message" hidden></p>
+
+                <button type="submit" id="income-button">
+                    Add Income
+                </button>
+
+            </form>
+
+            <a href="/home.html" class="back-home-link">
+                ← Back to Home
+            </a>
+
+        </section>
+
+    </main>
+
+    <script src="js/income.js"></script>
+
+</body>
+</html>

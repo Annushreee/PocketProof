@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketProof | Home</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="dashboard-nav">
+        <a href="/home.html" class="dashboard-brand">
+            <span class="logo-icon">₹</span>
+            <span>PocketProof</span>
+        </a>
+
+        <div class="nav-right">
+            <span id="welcome-user">Welcome!</span>
+            <span id="membership-badge" class="membership-badge" hidden>
+                ★ Premium Member
+            </span>
+            <a href="/premium.html" id="upgrade-link">Upgrade to Premium</a>
+            <a href="/premium-dashboard.html" id="premium-features-link" hidden>
+                ✦ Premium Features
+            </a>
+            <button id="logout-button" class="logout-button">Logout</button>
+        </div>
+    </nav>
+
+    <main class="home-container">
+
+        <header class="home-header">
+            <h1>Welcome, <span id="username">there</span>!</h1>
+            <p>What would you like to manage today?</p>
+        </header>
+
+        <section class="action-cards">
+
+            <a href="/income.html" class="action-card income-card">
+                <div class="action-icon">↗</div>
+                <h2>Income</h2>
+                <p>Add your income details</p>
+                <span class="action-link">Add Income →</span>
+            </a>
+
+            <a href="/expenses.html" class="action-card expense-card">
+                <div class="action-icon">↙</div>
+                <h2>Expenses</h2>
+                <p>Add your daily expenses</p>
+                <span class="action-link">Add Expenses →</span>
+            </a>
+
+        </section>
+
+    </main>
+
+    <script src="js/home.js"></script>
+</body>
+</html>

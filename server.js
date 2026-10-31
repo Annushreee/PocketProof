@@ -211,7 +211,7 @@ app.post("/api/login", async (req, res) => {
 
         return res.status(200).json({
             message: "User login successful.",
-            redirect: "/expenses.html"
+            redirect: "/home.html"
         });
 
     } catch (error) {
@@ -598,9 +598,11 @@ app.post("/api/premium/verify-payment", async (req, res) => {
                 message: "TRANSACTION FAILED"
             });
         }
-
+console.log("Verifying order:", orderId);
         // Fetch payment details directly from Cashfree
         const payments = await fetchPayments(orderId);
+        console.log("Cashfree payment response:");
+console.log(JSON.stringify(payments, null, 2));
 
         if (!Array.isArray(payments) || payments.length === 0) {
             return res.json({
@@ -680,6 +682,118 @@ app.post("/api/premium/verify-payment", async (req, res) => {
     }
 });
 
+/* =========================
+   PREMIUM EXPENSE ANALYTICS API
+========================= */
+
+app.get("/api/premium/analytics", async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({
+            message: "Please log in first."
+        });
+    }
+
+    try {
+        const userId = req.session.userId;
+
+        // Check Premium Membership
+        const [users] = await db.execute(
+            "SELECT is_premium FROM users WHERE id = ?",
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                message: "User not found."
+            });
+        }
+
+        if (!users[0].is_premium) {
+            return res.status(403).json({
+                message: "Premium Membership is required to access analytics."
+            });
+        }
+
+        // Calculate total income and expenses
+        const [summary] = await db.execute(
+            `SELECT
+                COALESCE(SUM(
+                    CASE WHEN category = 'Salary'
+                    THEN amount ELSE 0 END
+                ), 0) AS totalIncome,
+
+                COALESCE(SUM(
+                    CASE WHEN category != 'Salary'
+                    THEN amount ELSE 0 END
+                ), 0) AS totalExpenses
+
+             FROM expenses
+             WHERE user_id = ?`,
+            [userId]
+        );
+
+        // Category-wise expenses for pie chart
+        const [categoryData] = await db.execute(
+            `SELECT
+                category,
+                SUM(amount) AS total
+             FROM expenses
+             WHERE user_id = ?
+               AND category != 'Salary'
+             GROUP BY category
+             ORDER BY total DESC`,
+            [userId]
+        );
+
+        // Monthly income and expenses for the last six months
+        const [monthlyData] = await db.execute(
+            `SELECT
+                DATE_FORMAT(expense_date, '%Y-%m') AS month,
+
+                SUM(
+                    CASE WHEN category = 'Salary'
+                    THEN amount ELSE 0 END
+                ) AS income,
+
+                SUM(
+                    CASE WHEN category != 'Salary'
+                    THEN amount ELSE 0 END
+                ) AS expenses
+
+             FROM expenses
+             WHERE user_id = ?
+               AND expense_date >= DATE_FORMAT(
+                   DATE_SUB(CURDATE(), INTERVAL 5 MONTH),
+                   '%Y-%m-01'
+               )
+             GROUP BY DATE_FORMAT(expense_date, '%Y-%m')
+             ORDER BY month ASC`,
+            [userId]
+        );
+
+        const totalIncome = Number(summary[0].totalIncome);
+        const totalExpenses = Number(summary[0].totalExpenses);
+
+        return res.json({
+            summary: {
+                totalIncome,
+                totalExpenses,
+                savings: totalIncome - totalExpenses
+            },
+            categoryData,
+            monthlyData
+        });
+
+    } catch (error) {
+        console.error("Premium analytics error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to load expense analytics."
+        });
+    }
+});
+
+
 // =========================
 // PROTECT HOME PAGE
 // =========================
@@ -727,6 +841,79 @@ app.get("/premium.html", (req, res) => {
 // =========================
 
 app.use(express.static(path.join(__dirname, "public")));
+// =========================
+// CASHFREE PAYMENT RETURN
+// =========================
+
+app.get("/payment-status", (req, res) => {
+    const orderId = req.query.order_id;
+
+    if (!orderId || typeof orderId !== "string") {
+        return res.redirect("/premium.html");
+    }
+
+    return res.redirect(
+        `/premium.html?order_id=${encodeURIComponent(orderId)}&payment_return=1`
+    );
+});
+
+// =========================
+// PREMIUM MONTHLY LEADERBOARD
+// =========================
+
+app.get("/api/premium/leaderboard", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                message: "Please log in first."
+            });
+        }
+
+        const [users] = await db.execute(
+            "SELECT is_premium FROM users WHERE id = ?",
+            [req.session.userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                message: "User not found."
+            });
+        }
+
+        if (!users[0].is_premium) {
+            return res.status(403).json({
+                message: "Premium membership required."
+            });
+        }
+
+        const [leaderboard] = await db.execute(
+            `SELECT
+                u.username,
+                SUM(e.amount) AS total_spending
+             FROM users u
+             INNER JOIN expenses e ON u.id = e.user_id
+             WHERE e.category != 'Salary'
+             AND e.expense_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+             AND e.expense_date < DATE_FORMAT(
+                 DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'
+             )
+             GROUP BY u.id, u.username
+             ORDER BY total_spending DESC
+             LIMIT 10`
+        );
+
+        return res.json({
+            leaderboard
+        });
+
+    } catch (error) {
+        console.error("Leaderboard error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to load leaderboard."
+        });
+    }
+});
 
 // =========================
 // START SERVER

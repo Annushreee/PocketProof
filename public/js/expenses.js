@@ -21,6 +21,32 @@ const subcategories = {
     Entertainment: ["Movies", "Games", "Subscriptions", "Events", "Custom"],
     Other: ["Custom"]
 };
+async function loadUserMembership() {
+    try {
+        const response = await fetch("/api/me");
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = "/";
+            }
+            return;
+        }
+
+        const data = await response.json();
+        const isPremium = Boolean(data.user.is_premium);
+
+        const badge = document.getElementById("membership-badge");
+        const upgradeLink = document.getElementById("upgrade-link");
+        const premiumLink = document.getElementById("premium-features-link");
+
+        if (badge) badge.hidden = !isPremium;
+        if (upgradeLink) upgradeLink.hidden = isPremium;
+        if (premiumLink) premiumLink.hidden = !isPremium;
+
+    } catch (error) {
+        console.error("Membership check failed:", error);
+    }
+}
 
 // Set today's date
 dateInput.value = new Date().toLocaleDateString("en-CA");
@@ -256,4 +282,6 @@ document.getElementById("logout-button").addEventListener("click", async () => {
 });
 
 // Load existing expenses when the page opens
+loadExpenses();
+loadUserMembership();
 loadExpenses();

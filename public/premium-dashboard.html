@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Analytics | PocketProof</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="dashboard-nav">
+        <a href="/expenses.html" class="dashboard-brand">
+            <span class="logo-icon">₹</span>
+            <span>PocketProof</span>
+        </a>
+
+        <div class="nav-right">
+            <span class="membership-badge">★ Premium Member</span>
+            <a href="/expenses.html">Expenses</a>
+            <button type="button" id="logout-button" class="logout-button">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="analytics-container">
+
+        <header class="analytics-header">
+            <div>
+                <p>POCKETPROOF PREMIUM</p>
+                <h1>Financial Analytics</h1>
+                <span>Understand your spending and manage your money better.</span>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Income</h3>
+                <h2 id="total-income">₹0.00</h2>
+            </div>
+
+            <div class="summary-card">
+                <h3>Total Expenses</h3>
+                <h2 id="total-expenses">₹0.00</h2>
+            </div>
+
+            <div class="summary-card">
+                <h3>Total Savings</h3>
+                <h2 id="total-savings">₹0.00</h2>
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="analytics-grid">
+
+            <div class="analytics-card">
+                <h2>Category-wise Expenses</h2>
+                <canvas id="category-chart"></canvas>
+            </div>
+
+            <div class="analytics-card">
+                <h2>Monthly Expenses</h2>
+                <canvas id="monthly-chart"></canvas>
+            </div>
+
+            <div class="analytics-card">
+                <h2>Income vs Expenses</h2>
+                <canvas id="comparison-chart"></canvas>
+            </div>
+
+        </section>
+
+        <!-- Leaderboard -->
+        <section class="leaderboard-card">
+            <h2>Monthly Spending Leaderboard</h2>
+            <p>Users ranked by highest monthly expenses.</p>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Username</th>
+                            <th>Total Spending</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-list">
+                        <tr>
+                            <td colspan="3">Loading leaderboard...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/premium-dashboard.js"></script>
+
+</body>
+</html>
