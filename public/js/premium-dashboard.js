@@ -186,3 +186,52 @@ if (logoutButton) {
 
 // LOAD DASHBOARD
 loadAnalytics();
+async function loadLeaderboard() {
+  const leaderboardList = document.getElementById("leaderboard-list");
+
+  try {
+    const response = await fetch("/api/premium/leaderboard");
+
+    if (!response.ok) {
+      throw new Error("Unable to load leaderboard");
+    }
+
+    const data = await response.json();
+    const leaderboard = data.leaderboard;
+
+    leaderboardList.innerHTML = "";
+
+    if (!leaderboard || leaderboard.length === 0) {
+      leaderboardList.innerHTML = `
+        <tr>
+          <td colspan="3">No spending data available this month.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    leaderboard.forEach((user) => {
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${user.user_rank}</td>
+        <td></td>
+        <td>₹${Number(user.total_spending).toLocaleString("en-IN")}</td>
+      `;
+
+      row.children[1].textContent = user.username;
+
+      leaderboardList.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Leaderboard error:", error);
+
+    leaderboardList.innerHTML = `
+      <tr>
+        <td colspan="3">Unable to load leaderboard.</td>
+      </tr>
+    `;
+  }
+}
+loadLeaderboard();
