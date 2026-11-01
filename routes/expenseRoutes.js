@@ -47,6 +47,8 @@ router.post("/", async (req, res) => {
         });
     }
 
+    let connection;
+
     try {
         const {
             amount,
@@ -101,14 +103,21 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const [result] = await db.execute(
+        const userId = req.session.userId;
+        const transactionAmount = Number(amount);
+
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Insert transaction into expenses table
+        const [result] = await connection.execute(
             `INSERT INTO expenses
              (user_id, amount, description, category,
               subcategory, expense_date)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [
-                req.session.userId,
-                Number(amount),
+                userId,
+                transactionAmount,
                 description.trim(),
                 category,
                 subcategory.trim(),
@@ -116,17 +125,47 @@ router.post("/", async (req, res) => {
             ]
         );
 
+        // Update precomputed monthly total
+        // Salary is income, so it is excluded.
+        if (category !== "Salary") {
+            await connection.execute(
+                `INSERT INTO monthly_expense_totals
+                    (user_id, year, month, total_spending)
+                 VALUES (?, YEAR(?), MONTH(?), ?)
+                 ON DUPLICATE KEY UPDATE
+                    total_spending = total_spending + ?`,
+                [
+                    userId,
+                    expense_date,
+                    expense_date,
+                    transactionAmount,
+                    transactionAmount
+                ]
+            );
+        }
+
+        await connection.commit();
+
         return res.status(201).json({
             message: "Transaction added successfully.",
             expenseId: result.insertId
         });
 
     } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+
         console.error("Add transaction error:", error.message);
 
         return res.status(500).json({
             message: "Unable to add transaction."
         });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 });
 
@@ -141,8 +180,11 @@ router.delete("/:id", async (req, res) => {
         });
     }
 
+    let connection;
+
     try {
         const expenseId = Number(req.params.id);
+        const userId = req.session.userId;
 
         if (!Number.isSafeInteger(expenseId) || expenseId <= 0) {
             return res.status(400).json({
@@ -150,28 +192,74 @@ router.delete("/:id", async (req, res) => {
             });
         }
 
-        const [result] = await db.execute(
-            `DELETE FROM expenses
-             WHERE id = ? AND user_id = ?`,
-            [expenseId, req.session.userId]
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Get transaction details before deleting
+        const [expenses] = await connection.execute(
+            `SELECT amount, category, expense_date
+             FROM expenses
+             WHERE id = ? AND user_id = ?
+             FOR UPDATE`,
+            [expenseId, userId]
         );
 
-        if (result.affectedRows === 0) {
+        if (expenses.length === 0) {
+            await connection.rollback();
+
             return res.status(404).json({
                 message: "Transaction not found."
             });
         }
+
+        const expense = expenses[0];
+
+        // Delete transaction
+        await connection.execute(
+            `DELETE FROM expenses
+             WHERE id = ? AND user_id = ?`,
+            [expenseId, userId]
+        );
+
+        // Decrease precomputed monthly total
+        // Salary is excluded because it was never added.
+        if (expense.category !== "Salary") {
+            await connection.execute(
+                `UPDATE monthly_expense_totals
+                 SET total_spending = total_spending - ?
+                 WHERE user_id = ?
+                   AND year = YEAR(?)
+                   AND month = MONTH(?)`,
+                [
+                    expense.amount,
+                    userId,
+                    expense.expense_date,
+                    expense.expense_date
+                ]
+            );
+        }
+
+        await connection.commit();
 
         return res.json({
             message: "Transaction deleted successfully."
         });
 
     } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+
         console.error("Delete transaction error:", error.message);
 
         return res.status(500).json({
             message: "Unable to delete transaction."
         });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 });
 

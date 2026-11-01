@@ -17,7 +17,6 @@ const subcategories = {
     Bills: ["Electricity", "Water", "Internet", "Mobile recharge", "Rent", "Custom"],
     Shopping: ["Clothing", "Electronics", "Household", "Personal care", "Custom"],
     Health: ["Medicine", "Doctor", "Medical tests", "Fitness", "Custom"],
-    Salary: ["Monthly salary", "Bonus", "Freelance income", "Other income", "Custom"],
     Entertainment: ["Movies", "Games", "Subscriptions", "Events", "Custom"],
     Other: ["Custom"]
 };
@@ -112,7 +111,11 @@ async function loadExpenses() {
             throw new Error(data.message || "Could not load expenses.");
         }
 
-        displayExpenses(data.expenses);
+        const onlyExpenses = data.expenses.filter(
+    expense => expense.category !== "Salary"
+);
+
+displayExpenses(onlyExpenses);
     } catch (error) {
         expenseList.replaceChildren();
         const row = document.createElement("tr");
@@ -284,4 +287,3 @@ document.getElementById("logout-button").addEventListener("click", async () => {
 // Load existing expenses when the page opens
 loadExpenses();
 loadUserMembership();
-loadExpenses();
