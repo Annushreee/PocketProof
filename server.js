@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const premiumRoutes = require("./routes/premiumRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const { generateAIResponse } = require("./services/geminiService");
 
 const app = express();
 
@@ -62,6 +63,28 @@ function requireLogin(req, res, next) {
 
   next();
 }
+
+//////////////////////////////
+// Temporary Gemini connection test
+app.get("/api/ai/test", requireLogin, async (req, res) => {
+  try {
+    const reply = await generateAIResponse(
+      "Reply with: Gemini connection successful!"
+    );
+
+    res.json({
+      success: true,
+      reply
+    });
+  } catch (error) {
+    console.error("Gemini error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Gemini connection failed"
+    });
+  }
+});
 
 // Home page
 app.get("/home.html", requireLogin, (req, res) => {
