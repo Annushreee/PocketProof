@@ -152,8 +152,8 @@ router.post("/login", async (req, res) => {
         );
 
         if (users.length === 0) {
-            return res.status(404).json({
-                message: "User not found."
+            return res.status(401).json({
+                message: "Invalid email or password."
             });
         }
 
@@ -164,7 +164,7 @@ router.post("/login", async (req, res) => {
 
         if (!passwordMatches) {
             return res.status(401).json({
-                message: "User not authorized."
+                message: "Invalid email or password."
             });
         }
 

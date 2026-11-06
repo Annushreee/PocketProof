@@ -193,9 +193,10 @@ router.delete("/:id", async (req, res) => {
         }
 
         connection = await db.getConnection();
+
         await connection.beginTransaction();
 
-        // Get transaction details before deleting
+        // Step 1: Find and lock the transaction
         const [expenses] = await connection.execute(
             `SELECT amount, category, expense_date
              FROM expenses
@@ -214,31 +215,43 @@ router.delete("/:id", async (req, res) => {
 
         const expense = expenses[0];
 
-        // Delete transaction
-        await connection.execute(
+        // Step 2: Update monthly total before deleting
+        if (expense.category !== "Salary") {
+            const [updateResult] = await connection.execute(
+                `UPDATE monthly_expense_totals
+                 SET total_spending = total_spending - ?
+                 WHERE user_id = ?
+                   AND year = YEAR(?)
+                   AND month = MONTH(?)
+                   AND total_spending >= ?`,
+                [
+                    expense.amount,
+                    userId,
+                    expense.expense_date,
+                    expense.expense_date,
+                    expense.amount
+                ]
+            );
+
+            if (updateResult.affectedRows !== 1) {
+                throw new Error(
+                    "Monthly expense total is missing or inconsistent."
+                );
+            }
+        }
+
+        // Step 3: Delete the transaction
+        const [deleteResult] = await connection.execute(
             `DELETE FROM expenses
              WHERE id = ? AND user_id = ?`,
             [expenseId, userId]
         );
 
-        // Decrease precomputed monthly total
-        // Salary is excluded because it was never added.
-        if (expense.category !== "Salary") {
-            await connection.execute(
-                `UPDATE monthly_expense_totals
-                 SET total_spending = total_spending - ?
-                 WHERE user_id = ?
-                   AND year = YEAR(?)
-                   AND month = MONTH(?)`,
-                [
-                    expense.amount,
-                    userId,
-                    expense.expense_date,
-                    expense.expense_date
-                ]
-            );
+        if (deleteResult.affectedRows !== 1) {
+            throw new Error("Unable to delete transaction.");
         }
 
+        // Step 4: Commit both operations
         await connection.commit();
 
         return res.json({

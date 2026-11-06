@@ -11,6 +11,31 @@ const {
 const router = express.Router();
 
 // =========================
+// DATABASE TRANSACTION HELPER
+// =========================
+
+async function runTransaction(callback) {
+    const connection = await db.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        const result = await callback(connection);
+
+        await connection.commit();
+
+        return result;
+
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+
+    } finally {
+        connection.release();
+    }
+}
+
+// =========================
 // CHECK PREMIUM ACCESS
 // =========================
 
@@ -39,7 +64,7 @@ async function checkPremium(req, res, next) {
             });
         }
 
-        next();
+        return next();
 
     } catch (error) {
         console.error("Premium access error:", error.message);
@@ -60,8 +85,6 @@ router.post("/create-order", async (req, res) => {
             message: "Please log in first."
         });
     }
-
-    let orderId;
 
     try {
         const userId = req.session.userId;
@@ -99,15 +122,19 @@ router.post("/create-order", async (req, res) => {
 
         const amount = 99.00;
 
-        orderId = `PP_${userId}_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
+        const orderId = `PP_${userId}_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
 
-        await db.execute(
-            `INSERT INTO orders (user_id, order_id, amount, status)
-             VALUES (?, ?, ?, 'PENDING')`,
-            [userId, orderId, amount]
-        );
+        // Save the pending order inside a transaction.
+        await runTransaction(async (connection) => {
+            await connection.execute(
+                `INSERT INTO orders (user_id, order_id, amount, status)
+                 VALUES (?, ?, ?, 'PENDING')`,
+                [userId, orderId, amount]
+            );
+        });
 
         try {
+            // External API call stays outside the DB transaction.
             const paymentSessionId = await createOrder(
                 orderId,
                 amount,
@@ -123,12 +150,17 @@ router.post("/create-order", async (req, res) => {
             });
 
         } catch (cashfreeError) {
-            await db.execute(
-                `UPDATE orders
-                 SET status = 'FAILED'
-                 WHERE order_id = ? AND user_id = ?`,
-                [orderId, userId]
-            );
+            // Mark the order as failed inside a transaction.
+            await runTransaction(async (connection) => {
+                await connection.execute(
+                    `UPDATE orders
+                     SET status = 'FAILED'
+                     WHERE order_id = ?
+                       AND user_id = ?
+                       AND status = 'PENDING'`,
+                    [orderId, userId]
+                );
+            });
 
             throw cashfreeError;
         }
@@ -162,12 +194,14 @@ router.post("/verify-payment", async (req, res) => {
         });
     }
 
+    const cleanOrderId = orderId.trim();
+
     try {
         const [orders] = await db.execute(
             `SELECT id, user_id, order_id, amount, status
              FROM orders
              WHERE order_id = ? AND user_id = ?`,
-            [orderId, userId]
+            [cleanOrderId, userId]
         );
 
         if (orders.length === 0) {
@@ -192,12 +226,8 @@ router.post("/verify-payment", async (req, res) => {
             });
         }
 
-        console.log("Verifying order:", orderId);
-
-        const payments = await fetchPayments(orderId);
-
-        console.log("Cashfree payment response:");
-        console.log(JSON.stringify(payments, null, 2));
+        // Check payment status with Cashfree.
+        const payments = await fetchPayments(cleanOrderId);
 
         if (!Array.isArray(payments) || payments.length === 0) {
             return res.json({
@@ -211,20 +241,61 @@ router.post("/verify-payment", async (req, res) => {
         );
 
         if (successfulPayment) {
-            await db.execute(
-                `UPDATE orders
-                 SET status = 'SUCCESSFUL'
-                 WHERE order_id = ? AND user_id = ?
-                   AND status = 'PENDING'`,
-                [orderId, userId]
-            );
+            // Update order and user atomically.
+            const result = await runTransaction(async (connection) => {
+                const [lockedOrders] = await connection.execute(
+                    `SELECT status
+                     FROM orders
+                     WHERE order_id = ? AND user_id = ?
+                     FOR UPDATE`,
+                    [cleanOrderId, userId]
+                );
 
-            await db.execute(
-                `UPDATE users
-                 SET is_premium = TRUE
-                 WHERE id = ?`,
-                [userId]
-            );
+                if (lockedOrders.length === 0) {
+                    throw new Error("Order not found during verification.");
+                }
+
+                if (lockedOrders[0].status === "SUCCESSFUL") {
+                    return "SUCCESSFUL";
+                }
+
+                if (lockedOrders[0].status !== "PENDING") {
+                    return lockedOrders[0].status;
+                }
+
+                const [orderUpdate] = await connection.execute(
+                    `UPDATE orders
+                     SET status = 'SUCCESSFUL'
+                     WHERE order_id = ?
+                       AND user_id = ?
+                       AND status = 'PENDING'`,
+                    [cleanOrderId, userId]
+                );
+
+                if (orderUpdate.affectedRows !== 1) {
+                    throw new Error("Unable to update payment order.");
+                }
+
+                const [userUpdate] = await connection.execute(
+                    `UPDATE users
+                     SET is_premium = TRUE
+                     WHERE id = ?`,
+                    [userId]
+                );
+
+                if (userUpdate.affectedRows !== 1) {
+                    throw new Error("Unable to activate Premium Membership.");
+                }
+
+                return "SUCCESSFUL";
+            });
+
+            if (result !== "SUCCESSFUL") {
+                return res.json({
+                    status: result,
+                    message: "Payment status has changed. Please try again."
+                });
+            }
 
             return res.json({
                 status: "SUCCESSFUL",
@@ -244,13 +315,16 @@ router.post("/verify-payment", async (req, res) => {
         );
 
         if (!hasPendingPayment && hasFailedPayment) {
-            await db.execute(
-                `UPDATE orders
-                 SET status = 'FAILED'
-                 WHERE order_id = ? AND user_id = ?
-                   AND status = 'PENDING'`,
-                [orderId, userId]
-            );
+            await runTransaction(async (connection) => {
+                await connection.execute(
+                    `UPDATE orders
+                     SET status = 'FAILED'
+                     WHERE order_id = ?
+                       AND user_id = ?
+                       AND status = 'PENDING'`,
+                    [cleanOrderId, userId]
+                );
+            });
 
             return res.json({
                 status: "FAILED",

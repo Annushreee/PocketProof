@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
     try {
+        // Check login
         if (!req.session.userId) {
             return res.status(401).json({
                 message: "Please log in first."
@@ -34,28 +35,22 @@ router.get("/", async (req, res) => {
             });
         }
 
-        // Get monthly spending of premium users only
+        // Get current month's leaderboard
         const [leaderboard] = await db.execute(
             `SELECT
                 u.username,
-                SUM(e.amount) AS total_spending,
+                m.total_spending,
                 RANK() OVER (
-                    ORDER BY SUM(e.amount) DESC
+                    ORDER BY m.total_spending DESC
                 ) AS user_rank
              FROM users u
-             INNER JOIN expenses e
-                 ON u.id = e.user_id
+             INNER JOIN monthly_expense_totals m
+                 ON u.id = m.user_id
              WHERE u.is_premium = TRUE
-               AND e.category != 'Salary'
-               AND e.expense_date >= DATE_FORMAT(
-                   CURDATE(), '%Y-%m-01'
-               )
-               AND e.expense_date < DATE_FORMAT(
-                   DATE_ADD(CURDATE(), INTERVAL 1 MONTH),
-                   '%Y-%m-01'
-               )
-             GROUP BY u.id, u.username
-             ORDER BY total_spending DESC
+               AND m.year = YEAR(CURDATE())
+               AND m.month = MONTH(CURDATE())
+               AND m.total_spending > 0
+             ORDER BY m.total_spending DESC
              LIMIT 10`
         );
 

@@ -11,6 +11,8 @@ const premiumRoutes = require("./routes/premiumRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const { generateAIResponse } = require("./services/geminiService");
 
+
+
 const app = express();
 
 // Middleware
