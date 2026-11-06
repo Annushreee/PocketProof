@@ -123,12 +123,29 @@ loginForm.addEventListener("submit", async (event) => {
     }
 });
 
-// FORGOT PASSWORD — placeholder for now
-forgotForm.addEventListener("submit", (event) => {
+// FORGOT PASSWORD
+forgotForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    hideMessage();
 
-    showMessage(
-        "Password reset is not set up yet. We'll implement it later.",
-        true
-    );
+    const email = document.getElementById("forgot-email").value.trim();
+
+    try {
+        const response = await axios.post("/password/forgotpassword", {
+            email
+        });
+
+        showMessage(
+            response.data.message || "Email sent successfully!"
+        );
+
+        forgotForm.reset();
+
+    } catch (error) {
+        showMessage(
+            error.response?.data?.message ||
+            "Unable to send email. Please try again.",
+            true
+        );
+    }
 });

@@ -10,6 +10,7 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const premiumRoutes = require("./routes/premiumRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const { generateAIResponse } = require("./services/geminiService");
+const passwordRoutes = require("./routes/passwordRoutes");
 
 
 
@@ -18,6 +19,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use("/password", passwordRoutes);
 
 app.use(
   session({
