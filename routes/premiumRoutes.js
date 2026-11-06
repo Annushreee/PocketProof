@@ -430,4 +430,85 @@ router.get("/analytics", checkPremium, async (req, res) => {
     }
 });
 
+// =========================
+// PREMIUM FINANCIAL REPORTS
+// =========================
+
+router.get("/reports", checkPremium, async (req, res) => {
+    try {
+        const userId = req.session.userId;
+
+        // 1. DAILY LEDGER
+        const [ledger] = await db.execute(
+            `SELECT
+                expense_date,
+                description,
+                category,
+                amount,
+                CASE
+                    WHEN category = 'Salary' THEN amount
+                    ELSE 0
+                END AS income,
+                CASE
+                    WHEN category != 'Salary' THEN amount
+                    ELSE 0
+                END AS expense
+             FROM expenses
+             WHERE user_id = ?
+             ORDER BY expense_date DESC, id DESC`,
+            [userId]
+        );
+
+        // 2. YEARLY SUMMARY (CURRENT YEAR)
+        const [yearlySummary] = await db.execute(
+            `SELECT
+                DATE_FORMAT(expense_date, '%Y-%m') AS month,
+                SUM(
+                    CASE
+                        WHEN category = 'Salary' THEN amount
+                        ELSE 0
+                    END
+                ) AS income,
+                SUM(
+                    CASE
+                        WHEN category != 'Salary' THEN amount
+                        ELSE 0
+                    END
+                ) AS expenses
+             FROM expenses
+             WHERE user_id = ?
+               AND YEAR(expense_date) = YEAR(CURDATE())
+             GROUP BY DATE_FORMAT(expense_date, '%Y-%m')
+             ORDER BY month ASC`,
+            [userId]
+        );
+
+        // 3. NOTES REPORT
+        const [notes] = await db.execute(
+            `SELECT
+                expense_date,
+                description,
+                category
+             FROM expenses
+             WHERE user_id = ?
+             ORDER BY expense_date DESC, id DESC`,
+            [userId]
+        );
+
+        return res.json({
+            ledger,
+            yearlySummary,
+            notes
+        });
+
+    } catch (error) {
+        console.error("Premium reports error:", error.message);
+
+        return res.status(500).json({
+            message: "Unable to load financial reports."
+        });
+    }
+});
+
+
 module.exports = router;

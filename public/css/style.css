@@ -1347,3 +1347,1012 @@ form {
     color: #64748b;
     text-decoration: none;
 }
+
+/* HOME PAGE MOBILE FIX */
+@media (max-width: 650px) {
+
+    .dashboard-nav {
+        height: auto;
+        min-height: 76px;
+        padding: 15px 18px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .dashboard-brand {
+        font-size: 18px;
+    }
+
+    .nav-right {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .nav-right a,
+    .nav-right span {
+        font-size: 12px;
+    }
+
+    .logout-button {
+        padding: 9px 12px;
+    }
+
+    .home-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 35px auto;
+        padding: 20px 16px;
+    }
+
+    .home-header {
+        margin-bottom: 30px;
+    }
+
+    .home-header h1 {
+        font-size: 26px;
+        overflow-wrap: anywhere;
+    }
+
+    .home-header p {
+        font-size: 14px;
+    }
+
+    .action-cards {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .action-card {
+        min-width: 0;
+        padding: 28px 22px;
+    }
+}
+
+/* =====================================
+   PREMIUM DASHBOARD UI IMPROVEMENTS
+===================================== */
+
+/* CENTER CATEGORY PIE CHART */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+    gap: 25px;
+    margin: 30px auto;
+}
+
+.analytics-card {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 30px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+}
+
+.analytics-card h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 350px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* REPORT CARDS */
+.report-card {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff;
+    padding: 28px;
+    margin: 30px 0;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+}
+
+.report-heading {
+    margin-bottom: 22px;
+}
+
+.report-heading h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.report-heading p {
+    color: #777;
+    font-size: 14px;
+}
+
+/* PROPER TABLE FORMAT */
+.report-card .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e2e8e8;
+    border-radius: 10px;
+}
+
+.report-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
+.report-table th {
+    background: #008080;
+    color: #ffffff;
+    padding: 15px 16px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid #008080;
+}
+
+.report-table td {
+    padding: 14px 16px;
+    color: #444;
+    font-size: 14px;
+    border: 1px solid #e5eaea;
+    text-align: left;
+}
+
+.report-table tbody tr:nth-child(even):not(.ledger-date):not(.ledger-subtotal) {
+    background: #f7fbfb;
+}
+
+.report-table tbody tr:hover:not(.ledger-date):not(.ledger-subtotal) {
+    background: #edf7f7;
+}
+
+/* DAILY LEDGER DATE ROW */
+.report-table .ledger-date td {
+    background: #e1f2f0;
+    color: #006b6b;
+    padding: 13px 16px;
+    font-size: 14px;
+    border: 1px solid #c5e3df;
+}
+
+/* DAILY SUBTOTAL ROW */
+.report-table .ledger-subtotal td {
+    background: #f0f6f6;
+    color: #006b6b;
+    border: 1px solid #d8e5e5;
+}
+
+/* TOTAL SAVINGS */
+.report-total {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 25px;
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: #e5f5f1;
+    border-radius: 10px;
+    color: #006b55;
+}
+
+.report-total span {
+    font-weight: 600;
+}
+
+.report-total strong {
+    font-size: 20px;
+}
+
+/* FLOATING DOWNLOAD BUTTON */
+.download-report-button {
+    position: fixed !important;
+    right: 30px !important;
+    bottom: 30px !important;
+    width: 60px !important;
+    height: 60px !important;
+    border: none !important;
+    border-radius: 50% !important;
+    background: #008080 !important;
+    color: #ffffff !important;
+    font-size: 32px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 5px 18px rgba(0, 128, 128, 0.35) !important;
+    z-index: 9999 !important;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.download-report-button:hover {
+    background: #006666 !important;
+    transform: translateY(-4px);
+}
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 768px) {
+    .analytics-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .analytics-card,
+    .report-card {
+        padding: 18px;
+    }
+
+    .chart-container {
+        height: 280px;
+    }
+
+    .report-heading h2 {
+        font-size: 19px;
+    }
+
+    .download-report-button {
+        width: 52px !important;
+        height: 52px !important;
+        right: 18px !important;
+        bottom: 18px !important;
+        font-size: 27px !important;
+    }
+
+    .report-total {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+}
+
+/* ==========================================
+   PREMIUM DASHBOARD - FULL RESPONSIVENESS
+========================================== */
+
+/* Prevent page-level horizontal scrolling */
+.analytics-container {
+    width: 100%;
+    max-width: 1200px;
+    box-sizing: border-box;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+/* SUMMARY CARDS */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.summary-card {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* PIE CHART CENTER */
+.analytics-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+}
+
+.analytics-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.chart-container {
+    width: 100%;
+    height: 350px;
+    position: relative;
+}
+
+/* REPORT CARDS */
+.report-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.report-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+}
+
+/* LEADERBOARD */
+.leaderboard-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.leaderboard-card .table-responsive {
+    overflow-x: auto;
+}
+
+/* TABLET */
+@media screen and (max-width: 900px) {
+
+    .analytics-container {
+        padding: 18px;
+    }
+
+    .summary-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .analytics-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* MOBILE */
+@media screen and (max-width: 600px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .analytics-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 15px auto;
+        padding: 12px;
+    }
+
+    /* MOBILE NAVIGATION */
+    .dashboard-nav {
+        height: auto;
+        min-height: 65px;
+        padding: 14px 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .dashboard-brand {
+        font-size: 18px;
+    }
+
+    .nav-right {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .nav-right a,
+    .nav-right span {
+        font-size: 12px;
+    }
+
+    .logout-button {
+        padding: 8px 12px;
+    }
+
+    /* HEADER */
+    .analytics-header {
+        margin-bottom: 20px;
+    }
+
+    .analytics-header h1 {
+        font-size: 25px;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .analytics-header span {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* SUMMARY CARDS */
+    .summary-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .summary-card {
+        padding: 15px 10px;
+    }
+
+    .summary-card h3 {
+        font-size: 12px;
+    }
+
+    .summary-card h2 {
+        font-size: 17px;
+        overflow-wrap: anywhere;
+    }
+
+    .summary-card:last-child {
+        grid-column: 1 / -1;
+    }
+
+    /* PIE CHART */
+    .analytics-grid {
+        margin: 18px auto;
+        gap: 15px;
+    }
+
+    .analytics-card {
+        padding: 16px 10px;
+        border-radius: 12px;
+    }
+
+    .analytics-card h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .chart-container {
+        height: 260px;
+    }
+
+    /* REPORT CARDS */
+    .report-card {
+        padding: 16px 12px;
+        margin: 18px 0;
+        border-radius: 12px;
+    }
+
+    .report-heading {
+        margin-bottom: 15px;
+    }
+
+    .report-heading h2 {
+        font-size: 18px;
+    }
+
+    .report-heading p {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* TABLES: scroll inside card, not whole page */
+    .report-card .table-responsive,
+    .leaderboard-card .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+    }
+
+    .report-table {
+        min-width: 620px;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 11px 12px;
+        font-size: 12px;
+    }
+
+    /* SAVINGS TOTAL */
+    .report-total {
+        padding: 13px;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .report-total span {
+        font-size: 13px;
+    }
+
+    .report-total strong {
+        font-size: 16px;
+    }
+
+    /* LEADERBOARD */
+    .leaderboard-card {
+        padding: 16px 12px;
+    }
+
+    .leaderboard-card h2 {
+        font-size: 18px;
+    }
+
+    .leaderboard-card p {
+        font-size: 12px;
+    }
+
+    /* FLOATING DOWNLOAD BUTTON */
+    .download-report-button {
+        width: 50px !important;
+        height: 50px !important;
+        right: 15px !important;
+        bottom: 15px !important;
+        font-size: 26px !important;
+    }
+}
+
+/* VERY SMALL PHONES */
+@media screen and (max-width: 360px) {
+
+    .analytics-container {
+        padding: 9px;
+    }
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-card:last-child {
+        grid-column: auto;
+    }
+
+    .analytics-header h1 {
+        font-size: 22px;
+    }
+
+    .chart-container {
+        height: 230px;
+    }
+}
+
+/* ==========================================
+   PREMIUM DASHBOARD - FULL RESPONSIVENESS
+========================================== */
+
+/* Prevent page-level horizontal scrolling */
+.analytics-container {
+    width: 100%;
+    max-width: 1200px;
+    box-sizing: border-box;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+/* SUMMARY CARDS */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.summary-card {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* PIE CHART CENTER */
+.analytics-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+}
+
+.analytics-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.chart-container {
+    width: 100%;
+    height: 350px;
+    position: relative;
+}
+
+/* REPORT CARDS */
+.report-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.report-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+}
+
+/* LEADERBOARD */
+.leaderboard-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.leaderboard-card .table-responsive {
+    overflow-x: auto;
+}
+
+/* TABLET */
+@media screen and (max-width: 900px) {
+
+    .analytics-container {
+        padding: 18px;
+    }
+
+    .summary-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .analytics-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* MOBILE */
+@media screen and (max-width: 600px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .analytics-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 15px auto;
+        padding: 12px;
+    }
+
+    /* MOBILE NAVIGATION */
+    .dashboard-nav {
+        height: auto;
+        min-height: 65px;
+        padding: 14px 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .dashboard-brand {
+        font-size: 18px;
+    }
+
+    .nav-right {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .nav-right a,
+    .nav-right span {
+        font-size: 12px;
+    }
+
+    .logout-button {
+        padding: 8px 12px;
+    }
+
+    /* HEADER */
+    .analytics-header {
+        margin-bottom: 20px;
+    }
+
+    .analytics-header h1 {
+        font-size: 25px;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .analytics-header span {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* SUMMARY CARDS */
+    .summary-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .summary-card {
+        padding: 15px 10px;
+    }
+
+    .summary-card h3 {
+        font-size: 12px;
+    }
+
+    .summary-card h2 {
+        font-size: 17px;
+        overflow-wrap: anywhere;
+    }
+
+    .summary-card:last-child {
+        grid-column: 1 / -1;
+    }
+
+    /* PIE CHART */
+    .analytics-grid {
+        margin: 18px auto;
+        gap: 15px;
+    }
+
+    .analytics-card {
+        padding: 16px 10px;
+        border-radius: 12px;
+    }
+
+    .analytics-card h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .chart-container {
+        height: 260px;
+    }
+
+    /* REPORT CARDS */
+    .report-card {
+        padding: 16px 12px;
+        margin: 18px 0;
+        border-radius: 12px;
+    }
+
+    .report-heading {
+        margin-bottom: 15px;
+    }
+
+    .report-heading h2 {
+        font-size: 18px;
+    }
+
+    .report-heading p {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* TABLES: scroll inside card, not whole page */
+    .report-card .table-responsive,
+    .leaderboard-card .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+    }
+
+    .report-table {
+        min-width: 620px;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 11px 12px;
+        font-size: 12px;
+    }
+
+    /* SAVINGS TOTAL */
+    .report-total {
+        padding: 13px;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .report-total span {
+        font-size: 13px;
+    }
+
+    .report-total strong {
+        font-size: 16px;
+    }
+
+    /* LEADERBOARD */
+    .leaderboard-card {
+        padding: 16px 12px;
+    }
+
+    .leaderboard-card h2 {
+        font-size: 18px;
+    }
+
+    .leaderboard-card p {
+        font-size: 12px;
+    }
+
+    /* FLOATING DOWNLOAD BUTTON */
+    .download-report-button {
+        width: 50px !important;
+        height: 50px !important;
+        right: 15px !important;
+        bottom: 15px !important;
+        font-size: 26px !important;
+    }
+}
+
+
+/* =====================================
+   MOBILE TABLES - NO HORIZONTAL SCROLL
+===================================== */
+
+@media screen and (max-width: 600px) {
+
+    /* Remove forced table width */
+    .report-card .table-responsive,
+    .leaderboard-card .table-responsive {
+        overflow-x: visible !important;
+        border: none;
+    }
+
+    .report-table,
+    .leaderboard-card table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    /* Hide normal table headers */
+    .report-table thead,
+    .leaderboard-card thead {
+        display: none;
+    }
+
+    /* Turn every row into a card */
+    .report-table tbody tr:not(.ledger-date):not(.ledger-subtotal),
+    .leaderboard-card tbody tr {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 12px;
+        padding: 10px;
+        border: 1px solid #dce9e9;
+        border-radius: 9px;
+        background: #ffffff;
+    }
+
+    .report-table tbody td,
+    .leaderboard-card tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 5px;
+        border: none;
+        border-bottom: 1px solid #edf1f1;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+        text-align: right;
+    }
+
+    .report-table tbody td:last-child,
+    .leaderboard-card tbody td:last-child {
+        border-bottom: none;
+    }
+
+    /* Daily ledger labels */
+    #daily-ledger-body tr:not(.ledger-date):not(.ledger-subtotal) td:nth-child(1)::before {
+        content: "Date";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #daily-ledger-body tr:not(.ledger-date):not(.ledger-subtotal) td:nth-child(2)::before {
+        content: "Description";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #daily-ledger-body tr:not(.ledger-date):not(.ledger-subtotal) td:nth-child(3)::before {
+        content: "Category";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #daily-ledger-body tr:not(.ledger-date):not(.ledger-subtotal) td:nth-child(4)::before {
+        content: "Income";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #daily-ledger-body tr:not(.ledger-date):not(.ledger-subtotal) td:nth-child(5)::before {
+        content: "Expense";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    /* Yearly summary labels */
+    #yearly-summary-body td:nth-child(1)::before {
+        content: "Month";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #yearly-summary-body td:nth-child(2)::before {
+        content: "Income";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #yearly-summary-body td:nth-child(3)::before {
+        content: "Expense";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #yearly-summary-body td:nth-child(4)::before {
+        content: "Savings";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    /* Notes report labels */
+    #notes-report-body td:nth-child(1)::before {
+        content: "Date";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #notes-report-body td:nth-child(2)::before {
+        content: "Notes";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    /* Leaderboard labels */
+    #leaderboard-list td:nth-child(1)::before {
+        content: "Rank";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #leaderboard-list td:nth-child(2)::before {
+        content: "Username";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    #leaderboard-list td:nth-child(3)::before {
+        content: "Total Spending";
+        font-weight: 700;
+        color: #008080;
+    }
+
+    /* Keep date headings full width */
+    #daily-ledger-body tr.ledger-date,
+    #daily-ledger-body tr.ledger-subtotal {
+        display: block;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    #daily-ledger-body tr.ledger-date td,
+    #daily-ledger-body tr.ledger-subtotal td {
+        display: block;
+        width: 100%;
+        text-align: left;
+        box-sizing: border-box;
+    }
+
+    #daily-ledger-body tr.ledger-subtotal td {
+        padding: 10px;
+    }
+}

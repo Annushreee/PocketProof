@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Analytics | PocketProof</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Premium Dashboard | PocketProof</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
+    <!-- NAVIGATION -->
     <nav class="dashboard-nav">
         <a href="/expenses.html" class="dashboard-brand">
             <span class="logo-icon">₹</span>
@@ -26,6 +27,7 @@
 
     <main class="analytics-container">
 
+        <!-- HEADER -->
         <header class="analytics-header">
             <div>
                 <p>POCKETPROOF PREMIUM</p>
@@ -34,8 +36,9 @@
             </div>
         </header>
 
-        <!-- Summary Cards -->
+        <!-- SUMMARY CARDS -->
         <section class="summary-cards">
+
             <div class="summary-card">
                 <h3>Total Income</h3>
                 <h2 id="total-income">₹0.00</h2>
@@ -50,30 +53,121 @@
                 <h3>Total Savings</h3>
                 <h2 id="total-savings">₹0.00</h2>
             </div>
+
         </section>
 
-        <!-- Charts -->
+        <!-- CATEGORY PIE CHART -->
         <section class="analytics-grid">
 
             <div class="analytics-card">
                 <h2>Category-wise Expenses</h2>
-                <canvas id="category-chart"></canvas>
-            </div>
-
-            <div class="analytics-card">
-                <h2>Monthly Expenses</h2>
-                <canvas id="monthly-chart"></canvas>
-            </div>
-
-            <div class="analytics-card">
-                <h2>Income vs Expenses</h2>
-                <canvas id="comparison-chart"></canvas>
+                <div class="chart-container">
+                    <canvas id="category-chart"></canvas>
+                </div>
             </div>
 
         </section>
 
-        <!-- Leaderboard -->
+        <!-- DAILY LEDGER -->
+        <section class="report-card">
+
+            <div class="report-heading">
+                <div>
+                    <h2>Daily Ledger</h2>
+                    <p>Your date-wise income and expense transactions.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Income</th>
+                            <th>Expense</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="daily-ledger-body">
+                        <tr>
+                            <td colspan="5">Loading daily ledger...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="report-total">
+                <span>Total Savings</span>
+                <strong id="ledger-total-savings">₹0.00</strong>
+            </div>
+
+        </section>
+
+        <!-- YEARLY SUMMARY -->
+        <section class="report-card">
+
+            <div class="report-heading">
+                <div>
+                    <h2>Yearly Summary</h2>
+                    <p>Monthly breakdown of your financial activity.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Income</th>
+                            <th>Expense</th>
+                            <th>Savings</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="yearly-summary-body">
+                        <tr>
+                            <td colspan="4">Loading yearly summary...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- NOTES REPORT -->
+        <section class="report-card">
+
+            <div class="report-heading">
+                <div>
+                    <h2>Notes Report</h2>
+                    <p>Your transaction descriptions arranged date-wise.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Notes / Description</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="notes-report-body">
+                        <tr>
+                            <td colspan="2">Loading notes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- LEADERBOARD -->
         <section class="leaderboard-card">
+
             <h2>Monthly Spending Leaderboard</h2>
             <p>Users ranked by highest monthly expenses.</p>
 
@@ -86,6 +180,7 @@
                             <th>Total Spending</th>
                         </tr>
                     </thead>
+
                     <tbody id="leaderboard-list">
                         <tr>
                             <td colspan="3">Loading leaderboard...</td>
@@ -93,12 +188,26 @@
                     </tbody>
                 </table>
             </div>
+
         </section>
 
     </main>
 
+    <!-- FLOATING DOWNLOAD BUTTON -->
+    <button
+        type="button"
+        id="download-report"
+        class="download-report-button"
+        title="Download financial reports"
+        aria-label="Download financial reports">
+        ↓
+    </button>
+
+    <!-- CHART.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/premium-dashboard.js"></script>
+
+    <!-- DASHBOARD JAVASCRIPT -->
+    <script src="/js/premium-dashboard.js"></script>
 
 </body>
 </html>
