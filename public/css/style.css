@@ -2356,3 +2356,59 @@ form {
         padding: 10px;
     }
 }
+
+/* =====================================
+   EXPENSE PAGINATION
+===================================== */
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+    padding: 22px 10px 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-button {
+    padding: 10px 18px;
+    border: 1px solid #008080;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #008080;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: #008080;
+    color: #ffffff;
+}
+
+.pagination-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+}
+
+@media (max-width: 480px) {
+    .pagination-container {
+        gap: 12px;
+    }
+
+    .pagination-button {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    .page-info {
+        font-size: 12px;
+    }
+}

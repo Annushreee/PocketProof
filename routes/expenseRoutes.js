@@ -4,8 +4,9 @@ const db = require("../config/db");
 
 const router = express.Router();
 
+
 // =========================
-// GET ALL USER TRANSACTIONS
+// GET PAGINATED USER EXPENSES
 // =========================
 
 router.get("/", async (req, res) => {
@@ -16,16 +17,66 @@ router.get("/", async (req, res) => {
     }
 
     try {
-        const [expenses] = await db.execute(
-            `SELECT id, amount, description, category,
-                    subcategory, expense_date
+        const userId = req.session.userId;
+        const limit = 10;
+
+        let page = Number.parseInt(req.query.page, 10);
+
+        if (!Number.isSafeInteger(page) || page < 1) {
+            page = 1;
+        }
+
+        // 1. Get total number of expenses and total amount.
+        // Salary transactions are excluded.
+        const [countResult] = await db.execute(
+            `SELECT
+                COUNT(*) AS totalExpenses,
+                COALESCE(SUM(amount), 0) AS totalAmount
              FROM expenses
              WHERE user_id = ?
-             ORDER BY expense_date DESC, id DESC`,
-            [req.session.userId]
+               AND category != 'Salary'`,
+            [userId]
         );
 
-        return res.json({ expenses });
+        const totalExpenses = Number(countResult[0].totalExpenses);
+        const totalAmount = Number(countResult[0].totalAmount);
+
+        // 2. Calculate total pages
+        const totalPages = Math.max(
+            1,
+            Math.ceil(totalExpenses / limit)
+        );
+
+        // Keep the requested page within valid limits
+        page = Math.min(page, totalPages);
+
+        const offset = (page - 1) * limit;
+
+        // 3. Fetch only 10 expenses for the requested page
+        const [expenses] = await db.execute(
+            `SELECT
+                id,
+                amount,
+                description,
+                category,
+                subcategory,
+                expense_date
+             FROM expenses
+             WHERE user_id = ?
+               AND category != 'Salary'
+             ORDER BY expense_date DESC, id DESC
+             LIMIT ? OFFSET ?`,
+            [userId, limit, offset]
+        );
+
+        return res.json({
+            expenses,
+            currentPage: page,
+            totalPages,
+            totalExpenses,
+            totalAmount,
+            limit
+        });
 
     } catch (error) {
         console.error("Fetch expenses error:", error.message);
@@ -35,6 +86,7 @@ router.get("/", async (req, res) => {
         });
     }
 });
+
 
 // =========================
 // ADD TRANSACTION API

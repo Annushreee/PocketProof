@@ -10,6 +10,13 @@ const message = document.getElementById("expense-message");
 const expenseList = document.getElementById("expense-list");
 const expenseTotal = document.getElementById("expense-total");
 const addExpenseButton = document.getElementById("add-expense-button");
+const paginationContainer = document.getElementById("expense-pagination");
+const previousPageButton = document.getElementById("previous-page");
+const nextPageButton = document.getElementById("next-page");
+const pageInfo = document.getElementById("page-info");
+
+let currentPage = 1;
+let totalPages = 1;
 
 const subcategories = {
     Food: ["Breakfast", "Lunch", "Dinner", "Snacks", "Groceries", "Restaurant", "Custom"],
@@ -95,10 +102,11 @@ subcategorySelect.addEventListener("change", () => {
     }
 });
 
-// Load saved expenses
-async function loadExpenses() {
+
+// Load paginated expenses
+async function loadExpenses(page = currentPage) {
     try {
-        const response = await fetch("/api/expenses");
+        const response = await fetch(`/api/expenses?page=${page}`);
 
         if (response.status === 401) {
             window.location.href = "/";
@@ -111,42 +119,81 @@ async function loadExpenses() {
             throw new Error(data.message || "Could not load expenses.");
         }
 
-        const onlyExpenses = data.expenses.filter(
-    expense => expense.category !== "Salary"
-);
+        currentPage = data.currentPage;
+        totalPages = data.totalPages;
 
-displayExpenses(onlyExpenses);
+        displayExpenses(data.expenses);
+
+        // Show total for all expenses, not just current page
+        expenseTotal.textContent =
+            `Total: ₹${Number(data.totalAmount).toFixed(2)}`;
+
+        // Update pagination controls
+        updatePagination();
+
     } catch (error) {
         expenseList.replaceChildren();
+
         const row = document.createElement("tr");
         const cell = document.createElement("td");
+
         cell.colSpan = 6;
         cell.textContent = error.message || "Unable to load expenses.";
+
         row.appendChild(cell);
         expenseList.appendChild(row);
+
+        paginationContainer.hidden = true;
     }
 }
+
+// Update pagination controls
+function updatePagination() {
+    paginationContainer.hidden = totalPages <= 1;
+
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    previousPageButton.disabled = currentPage <= 1;
+    nextPageButton.disabled = currentPage >= totalPages;
+}
+
+// Previous page
+previousPageButton.addEventListener("click", () => {
+    if (currentPage > 1) {
+        loadExpenses(currentPage - 1);
+    }
+});
+
+// Next page
+nextPageButton.addEventListener("click", () => {
+    if (currentPage < totalPages) {
+        loadExpenses(currentPage + 1);
+    }
+});
+
+
 
 // Display expense rows safely
 function displayExpenses(expenses) {
     expenseList.replaceChildren();
 
-    let total = 0;
-
     if (!expenses.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
+
         cell.colSpan = 6;
         cell.textContent = "No expenses yet. Add your first expense!";
+
         row.appendChild(cell);
         expenseList.appendChild(row);
+        return;
     }
 
     expenses.forEach((expense) => {
         const row = document.createElement("tr");
 
         const values = [
-            new Date(expense.expense_date).toLocaleDateString(),
+            new Date(expense.expense_date).toLocaleDateString("en-IN"),
             expense.description,
             expense.category,
             expense.subcategory,
@@ -161,18 +208,21 @@ function displayExpenses(expenses) {
 
         const actionCell = document.createElement("td");
         const deleteButton = document.createElement("button");
+
         deleteButton.type = "button";
         deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", () => deleteExpense(expense.id));
+
+        deleteButton.addEventListener("click", () => {
+            deleteExpense(expense.id);
+        });
+
         actionCell.appendChild(deleteButton);
         row.appendChild(actionCell);
 
         expenseList.appendChild(row);
-        total += Number(expense.amount);
     });
-
-    expenseTotal.textContent = `Total: ₹${total.toFixed(2)}`;
 }
+
 
 // Add expense
 expenseForm.addEventListener("submit", async (event) => {
@@ -267,7 +317,7 @@ async function deleteExpense(id) {
         }
 
         showMessage("Expense deleted successfully!");
-        await loadExpenses();
+        await loadExpenses(currentPage);
     } catch (error) {
         showMessage(error.message || "Unable to delete expense.", true);
     }
