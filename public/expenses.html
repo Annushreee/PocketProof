@@ -221,7 +221,51 @@
             </div>
 
             <!-- EXPENSE PAGINATION -->
-            <div class="pagination-container" id="expense-pagination" hidden>
+            
+<!-- DYNAMIC EXPENSE PAGINATION -->
+<div class="pagination-container" id="expense-pagination" hidden>
+
+    <div class="page-size-selector">
+        <label for="page-size">Expenses per page:</label>
+
+        <select id="page-size">
+            <option value="5">5</option>
+            <option value="8">8</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="40">40</option>
+        </select>
+    </div>
+
+    <div class="pagination-controls">
+
+        <button
+            type="button"
+            id="previous-page"
+            class="pagination-button"
+            disabled
+        >
+            ← Previous
+        </button>
+
+        <span id="page-info" class="page-info">
+            Page 1 of 1
+        </span>
+
+        <button
+            type="button"
+            id="next-page"
+            class="pagination-button"
+            disabled
+        >
+            Next →
+        </button>
+
+    </div>
+
+</div>
+
 
                 <button
                     type="button"

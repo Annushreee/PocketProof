@@ -1,3 +1,4 @@
+
 const expenseForm = document.getElementById("expense-form");
 const amountInput = document.getElementById("expense-amount");
 const descriptionInput = document.getElementById("expense-description");
@@ -10,14 +11,54 @@ const message = document.getElementById("expense-message");
 const expenseList = document.getElementById("expense-list");
 const expenseTotal = document.getElementById("expense-total");
 const addExpenseButton = document.getElementById("add-expense-button");
+
+// Pagination elements
 const paginationContainer = document.getElementById("expense-pagination");
 const previousPageButton = document.getElementById("previous-page");
 const nextPageButton = document.getElementById("next-page");
 const pageInfo = document.getElementById("page-info");
+const pageSizeSelect = document.getElementById("page-size");
+const paginationControls = document.querySelector(".pagination-controls");
+
+// Dynamic page-size settings
+const PAGE_SIZE_STORAGE_KEY = "pocketproof-expenses-page-size";
+const ALLOWED_PAGE_SIZES = [5, 8, 10, 20, 30, 40];
+
+// Read saved page size
+function getSavedPageSize() {
+    try {
+        const savedSize = Number(
+            localStorage.getItem(PAGE_SIZE_STORAGE_KEY)
+        );
+
+        return ALLOWED_PAGE_SIZES.includes(savedSize)
+            ? savedSize
+            : 10;
+    } catch (error) {
+        console.warn("Could not read page size:", error);
+        return 10;
+    }
+}
+
+// Save selected page size
+function savePageSize(size) {
+    try {
+        localStorage.setItem(
+            PAGE_SIZE_STORAGE_KEY,
+            String(size)
+        );
+    } catch (error) {
+        console.warn("Could not save page size:", error);
+    }
+}
+
+let pageSize = getSavedPageSize();
+pageSizeSelect.value = String(pageSize);
 
 let currentPage = 1;
 let totalPages = 1;
 
+// Expense subcategories
 const subcategories = {
     Food: ["Breakfast", "Lunch", "Dinner", "Snacks", "Groceries", "Restaurant", "Custom"],
     Transport: ["Petrol", "Public transport", "Taxi / cab", "Parking", "Vehicle maintenance", "Custom"],
@@ -27,6 +68,8 @@ const subcategories = {
     Entertainment: ["Movies", "Games", "Subscriptions", "Events", "Custom"],
     Other: ["Custom"]
 };
+
+// Load user membership
 async function loadUserMembership() {
     try {
         const response = await fetch("/api/me");
@@ -65,7 +108,7 @@ function showMessage(text, isError = false) {
     message.classList.toggle("message-success", !isError);
 }
 
-// Update subcategories when the category changes
+// Update subcategories when category changes
 categorySelect.addEventListener("change", () => {
     const category = categorySelect.value;
     const options = subcategories[category] || [];
@@ -102,11 +145,12 @@ subcategorySelect.addEventListener("change", () => {
     }
 });
 
-
-// Load paginated expenses
+// Load dynamically paginated expenses
 async function loadExpenses(page = currentPage) {
     try {
-        const response = await fetch(`/api/expenses?page=${page}`);
+        const response = await fetch(
+            `/api/expenses?page=${page}&limit=${pageSize}`
+        );
 
         if (response.status === 401) {
             window.location.href = "/";
@@ -119,16 +163,20 @@ async function loadExpenses(page = currentPage) {
             throw new Error(data.message || "Could not load expenses.");
         }
 
+        // Update pagination details from backend
         currentPage = data.currentPage;
         totalPages = data.totalPages;
+        pageSize = data.limit;
 
+        pageSizeSelect.value = String(pageSize);
+
+        // Display expenses
         displayExpenses(data.expenses);
 
         // Show total for all expenses, not just current page
         expenseTotal.textContent =
             `Total: ₹${Number(data.totalAmount).toFixed(2)}`;
 
-        // Update pagination controls
         updatePagination();
 
     } catch (error) {
@@ -138,7 +186,8 @@ async function loadExpenses(page = currentPage) {
         const cell = document.createElement("td");
 
         cell.colSpan = 6;
-        cell.textContent = error.message || "Unable to load expenses.";
+        cell.textContent =
+            error.message || "Unable to load expenses.";
 
         row.appendChild(cell);
         expenseList.appendChild(row);
@@ -149,9 +198,14 @@ async function loadExpenses(page = currentPage) {
 
 // Update pagination controls
 function updatePagination() {
-    paginationContainer.hidden = totalPages <= 1;
+    // Keep page-size selector visible
+    paginationContainer.hidden = false;
 
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    // Hide navigation if there is only one page
+    paginationControls.hidden = totalPages <= 1;
+
+    pageInfo.textContent =
+        `Page ${currentPage} of ${totalPages}`;
 
     previousPageButton.disabled = currentPage <= 1;
     nextPageButton.disabled = currentPage >= totalPages;
@@ -171,7 +225,22 @@ nextPageButton.addEventListener("click", () => {
     }
 });
 
+// Change expenses per page
+pageSizeSelect.addEventListener("change", () => {
+    const selectedSize = Number(pageSizeSelect.value);
 
+    if (!ALLOWED_PAGE_SIZES.includes(selectedSize)) {
+        pageSizeSelect.value = String(pageSize);
+        return;
+    }
+
+    pageSize = selectedSize;
+
+    savePageSize(pageSize);
+
+    // Start from page 1 after changing page size
+    loadExpenses(1);
+});
 
 // Display expense rows safely
 function displayExpenses(expenses) {
@@ -182,7 +251,8 @@ function displayExpenses(expenses) {
         const cell = document.createElement("td");
 
         cell.colSpan = 6;
-        cell.textContent = "No expenses yet. Add your first expense!";
+        cell.textContent =
+            "No expenses yet. Add your first expense!";
 
         row.appendChild(cell);
         expenseList.appendChild(row);
@@ -223,7 +293,6 @@ function displayExpenses(expenses) {
     });
 }
 
-
 // Add expense
 expenseForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -231,6 +300,7 @@ expenseForm.addEventListener("submit", async (event) => {
 
     const category = categorySelect.value;
     const selectedSubcategory = subcategorySelect.value;
+
     const subcategory = selectedSubcategory === "Custom"
         ? customSubcategoryInput.value.trim()
         : selectedSubcategory;
@@ -246,7 +316,10 @@ expenseForm.addEventListener("submit", async (event) => {
         !subcategory ||
         !dateInput.value
     ) {
-        showMessage("Please complete all fields with valid values.", true);
+        showMessage(
+            "Please complete all fields with valid values.",
+            true
+        );
         return;
     }
 
@@ -255,7 +328,9 @@ expenseForm.addEventListener("submit", async (event) => {
     try {
         const response = await fetch("/api/expenses", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 amount,
                 description,
@@ -273,24 +348,36 @@ expenseForm.addEventListener("submit", async (event) => {
         }
 
         if (!response.ok) {
-            throw new Error(data.message || "Could not add expense.");
+            throw new Error(
+                data.message || "Could not add expense."
+            );
         }
 
         expenseForm.reset();
+
         dateInput.value = new Date().toLocaleDateString("en-CA");
+
         subcategorySelect.replaceChildren();
+
         const placeholder = document.createElement("option");
         placeholder.value = "";
         placeholder.textContent = "Select a category first";
+
         subcategorySelect.appendChild(placeholder);
         subcategorySelect.disabled = true;
+
         customSubcategoryField.hidden = true;
         customSubcategoryInput.required = false;
 
         showMessage("Expense added successfully!");
+
         await loadExpenses();
+
     } catch (error) {
-        showMessage(error.message || "Unable to add expense.", true);
+        showMessage(
+            error.message || "Unable to add expense.",
+            true
+        );
     } finally {
         addExpenseButton.disabled = false;
     }
@@ -298,7 +385,9 @@ expenseForm.addEventListener("submit", async (event) => {
 
 // Delete an expense
 async function deleteExpense(id) {
-    if (!confirm("Are you sure you want to delete this expense?")) return;
+    if (!confirm("Are you sure you want to delete this expense?")) {
+        return;
+    }
 
     try {
         const response = await fetch(`/api/expenses/${id}`, {
@@ -313,27 +402,41 @@ async function deleteExpense(id) {
         }
 
         if (!response.ok) {
-            throw new Error(data.message || "Could not delete expense.");
+            throw new Error(
+                data.message || "Could not delete expense."
+            );
         }
 
         showMessage("Expense deleted successfully!");
+
+        // Reload current page.
+        // Backend will correct the page if it is now out of range.
         await loadExpenses(currentPage);
+
     } catch (error) {
-        showMessage(error.message || "Unable to delete expense.", true);
+        showMessage(
+            error.message || "Unable to delete expense.",
+            true
+        );
     }
 }
 
 // Log out
 document.getElementById("logout-button").addEventListener("click", async () => {
-    const response = await fetch("/api/logout", { method: "POST" });
+    const response = await fetch("/api/logout", {
+        method: "POST"
+    });
 
     if (response.ok) {
         window.location.href = "/";
     } else {
-        showMessage("Unable to log out. Please try again.", true);
+        showMessage(
+            "Unable to log out. Please try again.",
+            true
+        );
     }
 });
 
-// Load existing expenses when the page opens
+// Load expenses and membership when page opens
 loadExpenses();
 loadUserMembership();

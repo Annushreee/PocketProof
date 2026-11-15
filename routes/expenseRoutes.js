@@ -5,8 +5,9 @@ const db = require("../config/db");
 const router = express.Router();
 
 
+
 // =========================
-// GET PAGINATED USER EXPENSES
+// GET DYNAMICALLY PAGINATED EXPENSES
 // =========================
 
 router.get("/", async (req, res) => {
@@ -18,16 +19,25 @@ router.get("/", async (req, res) => {
 
     try {
         const userId = req.session.userId;
-        const limit = 10;
 
-        let page = Number.parseInt(req.query.page, 10);
+        // Allowed page sizes
+        const allowedPageSizes = [5, 8, 10, 20, 30, 40];
+
+        // Validate page size
+        const requestedLimit = Number(req.query.limit);
+
+        const limit = allowedPageSizes.includes(requestedLimit)
+            ? requestedLimit
+            : 10;
+
+        // Validate page number
+        let page = Number(req.query.page);
 
         if (!Number.isSafeInteger(page) || page < 1) {
             page = 1;
         }
 
-        // 1. Get total number of expenses and total amount.
-        // Salary transactions are excluded.
+        // 1. Get total expense count and amount
         const [countResult] = await db.execute(
             `SELECT
                 COUNT(*) AS totalExpenses,
@@ -47,12 +57,12 @@ router.get("/", async (req, res) => {
             Math.ceil(totalExpenses / limit)
         );
 
-        // Keep the requested page within valid limits
+        // Prevent invalid page requests
         page = Math.min(page, totalPages);
 
         const offset = (page - 1) * limit;
 
-        // 3. Fetch only 10 expenses for the requested page
+        // 3. Fetch only the requested number of expenses
         const [expenses] = await db.execute(
             `SELECT
                 id,
@@ -86,6 +96,7 @@ router.get("/", async (req, res) => {
         });
     }
 });
+
 
 
 // =========================
