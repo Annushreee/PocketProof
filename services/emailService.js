@@ -1,4 +1,6 @@
 
+const logger = require("../config/logger");
+
 let brevoClient;
 
 async function getBrevoClient() {
@@ -18,23 +20,39 @@ async function getBrevoClient() {
 }
 
 async function sendEmail(to, subject, textContent) {
-    if (!process.env.BREVO_SENDER_EMAIL) {
-        throw new Error("BREVO_SENDER_EMAIL is missing from .env");
+    try {
+        if (!process.env.BREVO_SENDER_EMAIL) {
+            throw new Error("BREVO_SENDER_EMAIL is missing from .env");
+        }
+
+        const brevo = await getBrevoClient();
+
+        const result = await brevo.transactionalEmails.sendTransacEmail({
+            sender: {
+                name: "PocketProof",
+                email: process.env.BREVO_SENDER_EMAIL
+            },
+            to: [{ email: to }],
+            subject,
+            textContent
+        });
+
+        logger.info("Email sent successfully", {
+            recipient: to,
+            subject
+        });
+
+        return result;
+
+    } catch (error) {
+        logger.error("Email sending failed", {
+            recipient: to,
+            subject,
+            message: error.message
+        });
+
+        throw error;
     }
-
-    const brevo = await getBrevoClient();
-
-    const result = await brevo.transactionalEmails.sendTransacEmail({
-        sender: {
-            name: "PocketProof",
-            email: process.env.BREVO_SENDER_EMAIL
-        },
-        to: [{ email: to }],
-        subject,
-        textContent
-    });
-
-    return result;
 }
 
 module.exports = { sendEmail };

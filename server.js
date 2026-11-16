@@ -4,6 +4,8 @@ const express = require("express");
 const path = require("path");
 const session = require("express-session");
 const db = require("./config/db");
+const morgan = require("morgan");
+const { logger } = require("./config/logger");
 
 const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
@@ -15,6 +17,14 @@ const passwordRoutes = require("./routes/passwordRoutes");
 
 
 const app = express();
+// HTTP request logging
+app.use(
+    morgan("combined", {
+        stream: {
+            write: (message) => logger.info(message.trim())
+        }
+    })
+);
 
 // Middleware
 app.use(express.json());
@@ -75,13 +85,16 @@ app.get("/api/ai/test", requireLogin, async (req, res) => {
     const reply = await generateAIResponse(
       "Reply with: Gemini connection successful!"
     );
-
+    logger.info("Gemini connection test successful");
     res.json({
       success: true,
       reply
     });
   } catch (error) {
-    console.error("Gemini error:", error);
+    logger.error("Gemini connection error", {
+    message: error.message,
+    stack: error.stack
+});
 
     res.status(500).json({
       success: false,
@@ -126,13 +139,33 @@ app.get("/premium-dashboard.html", requireLogin, async (req, res) => {
       path.join(__dirname, "public", "premium-dashboard.html")
     );
   } catch (error) {
-    console.error("Dashboard access error:", error);
+    logger.error("Dashboard access error", {
+    message: error.message,
+    stack: error.stack
+});
     res.status(500).send("Unable to load dashboard.");
   }
 });
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
+// Global error handler
+app.use((err, req, res, next) => {
+    logger.error("Unhandled application error", {
+        message: err.message,
+        stack: err.stack,
+        url: req.originalUrl,
+        method: req.method
+    });
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(err.status || 500).json({
+        message: "Something went wrong. Please try again later."
+    });
+});
 
 // Start server
 async function startServer() {
@@ -146,10 +179,13 @@ async function startServer() {
     const PORT = process.env.PORT || 3000;
 
     app.listen(PORT, () => {
-      console.log(`PocketProof server running on http://localhost:${PORT}`);
+      logger.info(`PocketProof server running on http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("Server startup failed:", error.message);
+    logger.error("Server startup failed", {
+      message: error.message,
+      stack: error.stack
+    });
     process.exit(1);
   }
 }

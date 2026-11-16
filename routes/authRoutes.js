@@ -2,6 +2,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const db = require("../config/db");
+const { logger } = require("../config/logger");
 
 const router = express.Router();
 
@@ -114,7 +115,10 @@ router.post("/register", async (req, res) => {
             });
         }
 
-        console.error("Signup error:", error.message);
+        logger.error("Signup error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to create your account."
@@ -176,7 +180,10 @@ router.post("/login", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Login error:", error.message);
+        logger.error("Login error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to log in. Please try again."
@@ -212,7 +219,10 @@ router.get("/me", async (req, res) => {
         return res.json({ user: users[0] });
 
     } catch (error) {
-        console.error("User lookup error:", error.message);
+        logger.error("User lookup error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to load your account."

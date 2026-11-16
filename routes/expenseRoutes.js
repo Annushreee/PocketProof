@@ -1,7 +1,7 @@
 
 const express = require("express");
 const db = require("../config/db");
-
+const { logger } = require("../config/logger");
 const router = express.Router();
 
 
@@ -90,7 +90,10 @@ router.get("/", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Fetch expenses error:", error.message);
+        logger.error("Fetch expenses error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to fetch expenses."
@@ -229,7 +232,10 @@ router.post("/", async (req, res) => {
             await connection.rollback();
         }
 
-        console.error("Add transaction error:", error.message);
+        logger.error("Add transaction error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to add transaction."
@@ -337,7 +343,10 @@ router.delete("/:id", async (req, res) => {
             await connection.rollback();
         }
 
-        console.error("Delete transaction error:", error.message);
+       logger.error("Delete transaction error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to delete transaction."

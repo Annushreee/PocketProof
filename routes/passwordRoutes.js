@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const express = require("express");
 const db = require("../config/db");
+const { logger } = require("../config/logger");
 const { sendEmail } = require("../services/emailService");
 
 const router = express.Router();
@@ -88,7 +89,10 @@ PocketProof Team`
         });
 
     } catch (error) {
-        console.error("Forgot password error:", error.message);
+        logger.error("Forgot password error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to process your request. Please try again."
@@ -122,7 +126,10 @@ router.get("/resetpassword/:requestId", async (req, res) => {
         );
 
     } catch (error) {
-        console.error("Reset link validation error:", error.message);
+        logger.error("Reset link validation error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).send(
             "Unable to validate the password reset link."
@@ -140,9 +147,11 @@ router.post("/resetpassword", async (req, res) => {
         });
     }
 
-    const connection = await db.getConnection();
+    let connection;
 
     try {
+        connection = await db.getConnection();
+
         await connection.beginTransaction();
 
         const [requests] = await connection.execute(
@@ -184,7 +193,10 @@ router.post("/resetpassword", async (req, res) => {
     } catch (error) {
         await connection.rollback();
 
-        console.error("Password update error:", error.message);
+        logger.error("Password update error", {
+    message: error.message,
+    stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to update password."

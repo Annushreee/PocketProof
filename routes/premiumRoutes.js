@@ -2,6 +2,7 @@
 const express = require("express");
 const crypto = require("crypto");
 const db = require("../config/db");
+const { logger } = require("../config/logger");
 
 const {
     createOrder,
@@ -67,7 +68,10 @@ async function checkPremium(req, res, next) {
         return next();
 
     } catch (error) {
-        console.error("Premium access error:", error.message);
+        logger.error("Premium access error", {
+            message: error.message,
+            stack: error.stack
+        });
 
         return res.status(500).json({
             message: "Unable to verify premium access."
@@ -166,7 +170,10 @@ router.post("/create-order", async (req, res) => {
         }
 
     } catch (error) {
-        console.error("Premium order error:", error.message);
+        logger.error("Premium order error", {
+            message: error.message,
+            stack: error.stack
+        });
 
         return res.status(500).json({
             message: "Unable to create payment order."
@@ -338,7 +345,10 @@ router.post("/verify-payment", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Payment verification error:", error.message);
+        logger.error("Payment verification error", {
+            message: error.message,
+            stack: error.stack
+        });
 
         return res.status(500).json({
             message: "Unable to verify payment right now."
@@ -422,7 +432,10 @@ router.get("/analytics", checkPremium, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Premium analytics error:", error.message);
+        logger.error("Premium analytics error", {
+            message: error.message,
+            stack: error.stack
+        });
 
         return res.status(500).json({
             message: "Unable to load expense analytics."
@@ -502,13 +515,15 @@ router.get("/reports", checkPremium, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Premium reports error:", error.message);
+        logger.error("Premium reports error", {
+            message: error.message,
+            stack: error.stack
+        });
 
         return res.status(500).json({
             message: "Unable to load financial reports."
         });
     }
 });
-
 
 module.exports = router;

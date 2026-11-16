@@ -1,3 +1,6 @@
+
+const logger = require("../config/logger");
+
 let aiClientPromise;
 
 async function getAIClient() {
@@ -10,6 +13,9 @@ async function getAIClient() {
             return new GoogleGenAI({
                 apiKey: process.env.GEMINI_API_KEY
             });
+        }).catch((error) => {
+            aiClientPromise = null;
+            throw error;
         });
     }
 
@@ -17,14 +23,23 @@ async function getAIClient() {
 }
 
 async function generateAIResponse(prompt) {
-    const ai = await getAIClient();
+    try {
+        const ai = await getAIClient();
 
-    const interaction = await ai.interactions.create({
-        model: "gemini-3.8-flash",
-        input: prompt
-    });
+        const interaction = await ai.interactions.create({
+            model: "gemini-3.8-flash",
+            input: prompt
+        });
 
-    return interaction.output_text;
+        return interaction.output_text;
+
+    } catch (error) {
+        logger.error("Gemini API request failed", {
+            message: error.message
+        });
+
+        throw error;
+    }
 }
 
 module.exports = { generateAIResponse };

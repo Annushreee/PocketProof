@@ -1,7 +1,7 @@
 
 const express = require("express");
 const db = require("../config/db");
-
+const { logger } = require("../config/logger");
 const router = express.Router();
 
 // =========================
@@ -59,7 +59,10 @@ router.get("/", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Leaderboard error:", error.message);
+        logger.error("Leaderboard error", {
+        message: error.message,
+        stack: error.stack
+});
 
         return res.status(500).json({
             message: "Unable to load leaderboard."
