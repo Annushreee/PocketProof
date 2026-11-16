@@ -1,5 +1,6 @@
 
 const expenseForm = document.getElementById("expense-form");
+const noteInput = document.getElementById("expense-note");
 const amountInput = document.getElementById("expense-amount");
 const descriptionInput = document.getElementById("expense-description");
 const categorySelect = document.getElementById("expense-category");
@@ -185,7 +186,7 @@ async function loadExpenses(page = currentPage) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
 
-        cell.colSpan = 6;
+        cell.colSpan = 7;
         cell.textContent =
             error.message || "Unable to load expenses.";
 
@@ -250,7 +251,7 @@ function displayExpenses(expenses) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
 
-        cell.colSpan = 6;
+        cell.colSpan = 7;
         cell.textContent =
             "No expenses yet. Add your first expense!";
 
@@ -265,6 +266,7 @@ function displayExpenses(expenses) {
         const values = [
             new Date(expense.expense_date).toLocaleDateString("en-IN"),
             expense.description,
+            expense.note || "—",
             expense.category,
             expense.subcategory,
             `₹${Number(expense.amount).toFixed(2)}`
@@ -332,12 +334,14 @@ expenseForm.addEventListener("submit", async (event) => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                amount,
-                description,
-                category,
-                subcategory,
-                expense_date: dateInput.value
-            })
+    amount,
+    description,
+    note: noteInput.value.trim(),
+    category,
+    subcategory,
+    expense_date: dateInput.value
+})
+        
         });
 
         const data = await response.json();
@@ -354,6 +358,7 @@ expenseForm.addEventListener("submit", async (event) => {
         }
 
         expenseForm.reset();
+        noteInput.value = "";
 
         dateInput.value = new Date().toLocaleDateString("en-CA");
 

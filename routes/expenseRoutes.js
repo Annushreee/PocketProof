@@ -65,12 +65,13 @@ router.get("/", async (req, res) => {
         // 3. Fetch only the requested number of expenses
         const [expenses] = await db.execute(
             `SELECT
-                id,
-                amount,
-                description,
-                category,
-                subcategory,
-                expense_date
+    id,
+    amount,
+    description,
+    note,
+    category,
+    subcategory,
+    expense_date
              FROM expenses
              WHERE user_id = ?
                AND category != 'Salary'
@@ -99,6 +100,7 @@ router.get("/", async (req, res) => {
 
 
 
+
 // =========================
 // ADD TRANSACTION API
 // =========================
@@ -116,6 +118,7 @@ router.post("/", async (req, res) => {
         const {
             amount,
             description,
+            note,
             category,
             subcategory,
             expense_date
@@ -132,6 +135,10 @@ router.post("/", async (req, res) => {
             "Other"
         ];
 
+        const transactionNote = note === undefined || note === null
+            ? ""
+            : note;
+
         if (
             amount === undefined ||
             amount === null ||
@@ -142,6 +149,8 @@ router.post("/", async (req, res) => {
             typeof description !== "string" ||
             !description.trim() ||
             description.trim().length > 255 ||
+            typeof transactionNote !== "string" ||
+            transactionNote.trim().length > 255 ||
             typeof category !== "string" ||
             !validCategories.includes(category) ||
             typeof subcategory !== "string" ||
@@ -172,16 +181,17 @@ router.post("/", async (req, res) => {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // Insert transaction into expenses table
+        // Insert transaction including optional note
         const [result] = await connection.execute(
             `INSERT INTO expenses
-             (user_id, amount, description, category,
+             (user_id, amount, description, note, category,
               subcategory, expense_date)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
                 transactionAmount,
                 description.trim(),
+                transactionNote.trim() || null,
                 category,
                 subcategory.trim(),
                 expense_date
@@ -231,6 +241,7 @@ router.post("/", async (req, res) => {
         }
     }
 });
+
 
 // =========================
 // DELETE TRANSACTION API
