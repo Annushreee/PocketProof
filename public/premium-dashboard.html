@@ -68,6 +68,58 @@
 
         </section>
 
+
+<!-- EXPENSE REPORT DOWNLOAD -->
+<section class="report-card expense-download-card">
+
+    <div class="report-heading">
+        <div>
+            <h2>Expense Reports</h2>
+            <p>Download all your expenses securely from AWS S3.</p>
+        </div>
+    </div>
+
+    <div class="expense-download-content">
+        <div>
+            <h3>Your expense data, anytime.</h3>
+            <p>Generate a CSV file containing all your expenses.</p>
+        </div>
+
+        <button
+            type="button"
+            id="generate-expense-report"
+            class="download-report-button">
+            ↓ Download Expense Report
+        </button>
+    </div>
+
+    <p id="report-message" role="status"></p>
+
+    <div class="report-history">
+        <h3>Previously Generated Reports</h3>
+
+        <div class="table-responsive">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Generated On</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+
+                <tbody id="expense-report-history">
+                    <tr>
+                        <td colspan="3">Loading reports...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>
+
+
         <!-- DAILY LEDGER -->
         <section class="report-card">
 

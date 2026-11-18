@@ -514,3 +514,161 @@ if (downloadButton) {
 loadAnalytics();
 loadReports();
 loadLeaderboard();
+
+
+// =====================================
+// AWS S3 EXPENSE REPORT DOWNLOAD
+// =====================================
+
+const generateExpenseReportButton = document.getElementById(
+    "generate-expense-report"
+);
+
+const reportMessage = document.getElementById("report-message");
+const expenseReportHistory = document.getElementById(
+    "expense-report-history"
+);
+
+// Display status messages
+function showExpenseReportMessage(message, isError = false) {
+    reportMessage.textContent = message;
+    reportMessage.style.color = isError ? "#dc2626" : "#15803d";
+}
+
+// Download file using S3 URL
+function downloadS3File(url) {
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
+// Generate a new expense report
+async function generateExpenseReport() {
+    try {
+        generateExpenseReportButton.disabled = true;
+        generateExpenseReportButton.textContent = "Generating...";
+
+        showExpenseReportMessage("Generating your expense report...");
+
+        const response = await fetch("/api/reports/generate", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+            showExpenseReportMessage(
+                data.message || "Premium membership required.",
+                true
+            );
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to generate report.");
+        }
+
+        showExpenseReportMessage(
+            `Report generated successfully! ${data.totalExpenses} expenses included.`
+        );
+
+        // Download the generated S3 file
+        downloadS3File(data.downloadUrl);
+
+        // Refresh previous reports
+        await loadExpenseReportHistory();
+
+    } catch (error) {
+        console.error("Expense report generation error:", error);
+
+        showExpenseReportMessage(
+            error.message || "Unable to generate expense report.",
+            true
+        );
+
+    } finally {
+        generateExpenseReportButton.disabled = false;
+        generateExpenseReportButton.textContent = "↓ Download Expense Report";
+    }
+}
+
+// Load previously generated reports
+async function loadExpenseReportHistory() {
+    try {
+        const response = await fetch("/api/reports/history", {
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to load report history.");
+        }
+
+        expenseReportHistory.innerHTML = "";
+
+        if (!data.reports || data.reports.length === 0) {
+            showTableMessage(
+                expenseReportHistory,
+                3,
+                "No previous expense reports found."
+            );
+            return;
+        }
+
+        data.reports.forEach(report => {
+            const row = document.createElement("tr");
+
+            const fileCell = document.createElement("td");
+            fileCell.textContent = report.fileName;
+
+            const dateCell = document.createElement("td");
+            dateCell.textContent = new Date(report.createdAt)
+                .toLocaleString("en-IN");
+
+            const downloadCell = document.createElement("td");
+
+            const downloadButton = document.createElement("button");
+            downloadButton.type = "button";
+            downloadButton.textContent = "Download";
+            downloadButton.className = "download-report-button";
+
+            downloadButton.addEventListener("click", () => {
+                downloadS3File(report.downloadUrl);
+            });
+
+            downloadCell.appendChild(downloadButton);
+
+            row.append(fileCell, dateCell, downloadCell);
+
+            expenseReportHistory.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error("Expense report history error:", error);
+
+        showTableMessage(
+            expenseReportHistory,
+            3,
+            "Unable to load previous reports."
+        );
+    }
+}
+
+// Generate report button
+if (generateExpenseReportButton) {
+    generateExpenseReportButton.addEventListener(
+        "click",
+        generateExpenseReport
+    );
+}
+
+// Load report history when dashboard opens
+loadExpenseReportHistory();

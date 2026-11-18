@@ -9,6 +9,7 @@ const { logger } = require("./config/logger");
 
 const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 const premiumRoutes = require("./routes/premiumRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const { generateAIResponse } = require("./services/geminiService");
@@ -50,6 +51,7 @@ app.use("/api", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/premium", premiumRoutes);
 app.use("/api/premium/leaderboard", leaderboardRoutes);
+app.use("/api/reports", reportRoutes);
 
 // Root page
 app.get("/", (req, res) => {
