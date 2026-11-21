@@ -2268,3 +2268,22 @@ form {
         font-size: 12px;
     }
 }
+/* RESET PASSWORD PAGE */
+.reset-page .auth-layout {
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+}
+
+.reset-page .auth-panel {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 24px;
+}
+
+.reset-page .auth-card {
+    width: 100%;
+    max-width: 550px;
+}

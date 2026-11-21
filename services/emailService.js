@@ -1,5 +1,5 @@
 
-const logger = require("../config/logger");
+const  { logger } = require("../config/logger");
 
 let brevoClient;
 
